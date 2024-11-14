@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.trajectory.MarkerCallback;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.LED;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -20,6 +21,7 @@ public class Intake {
     ColorSensor rightColorSensor;
     DistanceSensor leftDistanceSensor;
     DistanceSensor rightDistanceSensor;
+    LED display;
     Logger logger;
     //color sensor config
     float minSaturation = 0.4f;

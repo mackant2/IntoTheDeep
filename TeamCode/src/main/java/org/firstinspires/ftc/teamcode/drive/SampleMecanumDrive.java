@@ -38,6 +38,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.LED;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -78,6 +79,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public Servo claw, leftFourBar, rightFourBar, servoLeft, servoRight, leftIntake, rightIntake, wrist;
 
+    public LED display;
+
     public ColorSensor leftColorSensor, rightColorSensor;
     public DistanceSensor leftDistanceSensor, rightDistanceSensor;
 
@@ -87,11 +90,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     private List<Integer> lastEncPositions = new ArrayList<>();
     private List<Integer> lastEncVels = new ArrayList<>();
 
-
-
     private ElapsedTime period  = new ElapsedTime();
-
-
 
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
@@ -118,6 +117,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         rightColorSensor = hardwareMap.get(ColorSensor.class, "rightColorSensor");
         leftDistanceSensor = hardwareMap.get(DistanceSensor.class, "leftColorSensor");
         rightDistanceSensor = hardwareMap.get(DistanceSensor.class, "rightColorSensor");
+
+        display = hardwareMap.get(LED.class, "led");
 
         right_back.setPower(0);
         left_back.setPower(0);
