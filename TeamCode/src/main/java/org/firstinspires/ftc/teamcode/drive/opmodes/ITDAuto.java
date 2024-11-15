@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.opmode;
+package org.firstinspires.ftc.teamcode.drive.opmodes;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 
@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.components.Intake;
 import org.firstinspires.ftc.teamcode.components.Logger;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
-@Autonomous
+@Autonomous(name = "*ITDAuto*", group = "*DRIVERS USE THIS*")
 public class ITDAuto extends LinearOpMode {
     Intake intake;
     Logger logger = new Logger();
@@ -26,7 +26,7 @@ public class ITDAuto extends LinearOpMode {
 
         arm = new Arm(drive, telemetry, gamepad1);
 
-        intake = new Intake(drive, logger);
+        intake = new Intake(drive, this, logger);
 
         Pose2d startPose = new Pose2d(0,0);
         drive.setPoseEstimate(startPose);

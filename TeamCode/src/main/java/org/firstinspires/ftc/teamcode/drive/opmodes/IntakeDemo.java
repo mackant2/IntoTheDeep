@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.components;
+package org.firstinspires.ftc.teamcode.drive.opmodes;
 
 import android.graphics.Color;
 
@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -24,6 +25,7 @@ public class IntakeDemo extends LinearOpMode {
     RevBlinkinLedDriver blinkinLedDriver;
     RevBlinkinLedDriver.BlinkinPattern pattern;
     private DcMotor intakeMotor;
+    private Servo flipdown;
 
 
 
@@ -37,12 +39,18 @@ public class IntakeDemo extends LinearOpMode {
 
         intakeMotor = hardwareMap.get(DcMotor.class, "Intake");
 
+        flipdown = hardwareMap.get(Servo.class, "flipdown");
+
         blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         pattern = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_RAINBOW_PALETTE;
         blinkinLedDriver.setPattern(pattern);
 
+        flipdown.setPosition(0);
+
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
+
+        flipdown.setPosition(1);
 
         while (opModeIsActive()) {
 

@@ -2,17 +2,17 @@ package org.firstinspires.ftc.teamcode.components;
 import android.graphics.Color;
 
 import com.acmerobotics.roadrunner.trajectory.MarkerCallback;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.LED;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Intake {
@@ -21,51 +21,73 @@ public class Intake {
     ColorSensor rightColorSensor;
     DistanceSensor leftDistanceSensor;
     DistanceSensor rightDistanceSensor;
-    LED display;
+    Servo flipdown;
+    RevBlinkinLedDriver display;
     Logger logger;
     //color sensor config
     float minSaturation = 0.4f;
     float minValue = 0.4f;
     float[] hsvValues = new float[3];
     AtomicBoolean stopping = new AtomicBoolean(false);
-    double power = 0;
+    boolean flippedDown = false;
+    LinearOpMode opMode;
 
-    public Intake(SampleMecanumDrive drive, Logger _logger) {
-        logger = _logger;
+    public Intake(SampleMecanumDrive drive, LinearOpMode opMode, Logger logger) {
+        this.opMode = opMode;
+        this.logger = logger;
         intake = drive.Intake;
         leftColorSensor = drive.leftColorSensor;
         rightColorSensor = drive.rightColorSensor;
         leftDistanceSensor = drive.leftDistanceSensor;
         rightDistanceSensor = drive.rightDistanceSensor;
+        flipdown = drive.flipdown;
+        display = drive.display;
+    }
+
+    public void Run() {
+        if (!flippedDown) {
+            flippedDown = true;
+            flipdown.setPosition(1);
+            intake.setPower(-1);
+        }
     }
 
     public boolean IsRunning() {
-        return intake.getPower() != 0;
+        return intake.getPower() == -1;
     }
 
     public void Update() {
-        boolean leftHasSample = HasSample(leftColorSensor, leftDistanceSensor); //assume robot-forward orientation for these
-        boolean rightHasSample = HasSample(rightColorSensor, rightDistanceSensor);
+        String leftSampleColor = GetSampleColor(leftColorSensor, leftDistanceSensor); //assume robot-forward orientation for these
+        String rightSampleColor = GetSampleColor(rightColorSensor, rightDistanceSensor);
 
-        if (leftHasSample && rightHasSample && !stopping.get()) {
-            stopping.set(true);
-            new Thread(() -> {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                intake.setPower(-0.01);
-                stopping.set(false);
-            }).start();
+        opMode.telemetry.addData("leftColor", leftSampleColor);
+        opMode.telemetry.addData("rightColor", rightSampleColor);
+        opMode.telemetry.update();
+
+        if (leftSampleColor != null && rightSampleColor != null && leftSampleColor == rightSampleColor) {
+            display.setPattern(leftSampleColor == "blue" ? BlinkinPattern.BLUE : leftSampleColor == "red" ? BlinkinPattern.RED : BlinkinPattern.YELLOW);
+            if (!stopping.get()) {
+                stopping.set(true);
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    intake.setPower(0);
+                    flippedDown = false;
+                    flipdown.setPosition(0);
+                    stopping.set(false);
+                }).start();
+            }
         }
-        else if (intake.getPower() != power && (leftDistanceSensor.getDistance(DistanceUnit.CM) > 7 || rightDistanceSensor.getDistance(DistanceUnit.CM) > 7)) {
-            intake.setPower(power);
+        else {
+            display.setPattern(BlinkinPattern.WHITE);
         }
     }
 
     public void SetRunning(boolean enabled) {
-        power = enabled ? -1 : 0;
+        //intake.setPower(enabled ? -1 : 0);
     }
 
     public MarkerCallback Outtake = () -> {
@@ -76,8 +98,8 @@ public class Intake {
         logger.Log("samplestore started intake");
     };
 
-    boolean HasSample(ColorSensor colorSensor, DistanceSensor distanceSensor) {
-        boolean hasSample = false;
+    String GetSampleColor(ColorSensor colorSensor, DistanceSensor distanceSensor) {
+        String sampleColor = null;
         // Get the color values from the sensor
         int red = colorSensor.red();
         int green = colorSensor.green();
@@ -90,9 +112,9 @@ public class Intake {
 
         if (saturation >= minSaturation && value >= minValue && distanceSensor.getDistance(DistanceUnit.CM) < 7) {
             //check if color matches any sample colors
-            hasSample = (hue >= 0 && hue < 65) || (hue >= 65 && hue < 100) || (hue >= 165 && hue < 240);
+            sampleColor = (hue >= 0 && hue < 65) ? "red" : (hue >= 65 && hue < 100) ? "yellow" : (hue >= 165 && hue < 240) ? "blue" : null;
         }
 
-        return hasSample;
+        return sampleColor;
     }
 }

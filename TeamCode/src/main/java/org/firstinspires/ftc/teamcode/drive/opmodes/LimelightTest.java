@@ -30,17 +30,17 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode.drive.opmodes;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.components.Logger;
 
 import java.util.List;
 
@@ -66,14 +66,19 @@ import java.util.List;
  *   and the ip address the Limelight device assigned the Control Hub and which is displayed in small text
  *   below the name of the Limelight on the top level configuration screen.
  */
-@TeleOp(name = "Sensor: Limelight3A", group = "Sensor")
+@TeleOp(name = "LimelightTest", group = "Demo")
 
-public class SensorLimelight3A extends LinearOpMode {
+public class LimelightTest extends LinearOpMode {
 
     private Limelight3A limelight;
+
+    Logger logger = new Logger();
+
     @Override
     public void runOpMode() throws InterruptedException
     {
+        logger.Initialize(telemetry);
+
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         telemetry.setMsTransmissionInterval(11);
@@ -93,11 +98,13 @@ public class SensorLimelight3A extends LinearOpMode {
         int blue = 2;
         int tag = 3;
 
+        int loops = 0;
+
         waitForStart();
 
         while (opModeIsActive()) {
             LLStatus status = limelight.getStatus();
-            limelight.pipelineSwitch(tag);
+            limelight.pipelineSwitch(red);
             telemetry.addData("Name", "%s",
                     status.getName());
             telemetry.addData("LL", "Temp: %.1fC, CPU: %.1f%%, FPS: %d",
@@ -123,6 +130,16 @@ public class SensorLimelight3A extends LinearOpMode {
                     telemetry.addData("tync", result.getTyNC());
 
                     telemetry.addData("Botpose", botpose.toString());
+
+                    logger.Log(String.valueOf(result.getTx()) + " Tx");
+                    logger.Log(String.valueOf(result.getTy()) + " Ty");
+                    logger.Log(botpose.toString() + " botpose");
+
+                    loops = loops + 1;
+
+                    if(loops == 50) {
+                        logger.close();
+                    }
 
                     // Access barcode results
                     List<LLResultTypes.BarcodeResult> barcodeResults = result.getBarcodeResults();

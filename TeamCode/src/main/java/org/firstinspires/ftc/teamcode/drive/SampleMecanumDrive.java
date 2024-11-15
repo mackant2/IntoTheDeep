@@ -30,6 +30,7 @@ import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationCon
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction;
 
@@ -77,9 +78,9 @@ public class SampleMecanumDrive extends MecanumDrive {
     public DcMotorEx left_front, left_back, right_back, right_front, armLeft, armRight, Extendo, Intake;
     private List<DcMotorEx> motors;
 
-    public Servo claw, leftFourBar, rightFourBar, servoLeft, servoRight, leftIntake, rightIntake, wrist;
+    public Servo claw, leftFourBar, rightFourBar, servoLeft, servoRight, leftIntake, rightIntake, wrist, flipdown;
 
-    public LED display;
+    public RevBlinkinLedDriver display;
 
     public ColorSensor leftColorSensor, rightColorSensor;
     public DistanceSensor leftDistanceSensor, rightDistanceSensor;
@@ -112,13 +113,14 @@ public class SampleMecanumDrive extends MecanumDrive {
         leftIntake = hardwareMap.get(Servo.class, "leftIntake");
         rightIntake = hardwareMap.get(Servo.class, "rightIntake");
         wrist = hardwareMap.get(Servo.class, "wrist");
+        flipdown = hardwareMap.get(Servo.class, "flipdown");
 
         leftColorSensor = hardwareMap.get(ColorSensor.class, "leftColorSensor");
         rightColorSensor = hardwareMap.get(ColorSensor.class, "rightColorSensor");
         leftDistanceSensor = hardwareMap.get(DistanceSensor.class, "leftColorSensor");
         rightDistanceSensor = hardwareMap.get(DistanceSensor.class, "rightColorSensor");
 
-        display = hardwareMap.get(LED.class, "led");
+        display = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
 
         right_back.setPower(0);
         left_back.setPower(0);

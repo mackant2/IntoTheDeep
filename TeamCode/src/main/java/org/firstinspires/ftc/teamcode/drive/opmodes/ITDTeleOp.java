@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.opmode;
+package org.firstinspires.ftc.teamcode.drive.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.components.Logger;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.util.custom.PressEventSystem;
 
-@TeleOp (name = "ITD TeleOp")
+@TeleOp (name = "*ITDTeleOp*", group = "*DRIVERS USE THIS*")
 public class ITDTeleOp extends LinearOpMode {
     Servo claw;
     boolean isClawOpen = false;
@@ -27,7 +27,7 @@ public class ITDTeleOp extends LinearOpMode {
         PressEventSystem pressEventSystem = new PressEventSystem(telemetry);
         Logger logger = new Logger();
         logger.Initialize(telemetry);
-        Intake intake = new Intake(drive, logger);
+        Intake intake = new Intake(drive, this, logger);
         Drivetrain drivetrain = new Drivetrain(drive, driverController);
         Arm arm = new Arm(drive, telemetry, driverController);
 
@@ -42,9 +42,8 @@ public class ITDTeleOp extends LinearOpMode {
 
         //Toggle claw with A press - driver
         pressEventSystem.AddListener(driverController, "a", this::ToggleClaw);
-        //Toggle intake with B press - driver
-        pressEventSystem.AddListener(assistantController, "b", () -> intake.SetRunning(!intake.IsRunning()));
-
+        //Run intake with right bumper press - driver
+        pressEventSystem.AddListener(driverController, "right_bumper", intake::Run);
         while (!isStopRequested()) {
             //Update utils
             pressEventSystem.Update();

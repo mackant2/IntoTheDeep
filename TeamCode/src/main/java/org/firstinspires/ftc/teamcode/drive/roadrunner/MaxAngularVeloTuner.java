@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.opmode;
+package org.firstinspires.ftc.teamcode.drive.roadrunner;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -23,7 +23,7 @@ import java.util.Objects;
  */
 
 @Config
-@Autonomous(group = "drive")
+@Autonomous(group = "roadrunner")
 public class MaxAngularVeloTuner extends LinearOpMode {
     public static double RUNTIME = 4.0;
 

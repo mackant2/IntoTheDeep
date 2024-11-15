@@ -39,7 +39,6 @@ public class Arm {
         leftFourBar = drive.leftFourBar;
         rightFourBar = drive.rightFourBar;
         wrist = drive.wrist;
-        telemetry.addData("four", rightFourBar.getPosition());
     }
 
     public void Initialize() {
@@ -69,8 +68,6 @@ public class Arm {
         float armDown = driverController.left_trigger;
         float power = armUp - armDown;
         liftPos += power;
-        telemetry.addData("liftPos", liftPos);
-        telemetry.update();
         float powerSign = Math.signum(power);
         //Math.clamp causes crash here, so using custom method
         int pos = (int)Math.max(0, Math.min(armRight.getTargetPosition() + power * 10, 2500));
