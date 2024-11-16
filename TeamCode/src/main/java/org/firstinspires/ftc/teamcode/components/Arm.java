@@ -13,7 +13,6 @@ public class Arm {
     Gamepad driverController;
     DcMotorEx armLeft, armRight;
     Servo leftFourBar, rightFourBar, wrist;
-    float liftPos = 0;
 
     public static class Height {
         public static int LOWER_BUCKET = 0;
@@ -36,6 +35,7 @@ public class Arm {
         armLeft = drive.armLeft;
         armRight = drive.armRight;
         //assign servos
+        //four bar - 0 is out, 1 is transfer position
         leftFourBar = drive.leftFourBar;
         rightFourBar = drive.rightFourBar;
         wrist = drive.wrist;
@@ -43,15 +43,8 @@ public class Arm {
 
     public void Initialize() {
         //initialize four bar to transfer
-        RotateFourBar(0.25);
+        RotateFourBar(1);
         wrist.setPosition(0.2);
-
-        try {
-            Thread.sleep(2000);
-            RotateFourBar(0.75);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public void GoToHeight(int height) {
@@ -67,17 +60,21 @@ public class Arm {
         float armUp = driverController.right_trigger;
         float armDown = driverController.left_trigger;
         float power = armUp - armDown;
-        liftPos += power;
-        float powerSign = Math.signum(power);
+        int currentPosition = armRight.getCurrentPosition();
         //Math.clamp causes crash here, so using custom method
-        int pos = (int)Math.max(0, Math.min(armRight.getTargetPosition() + power * 10, 2500));
-        if (powerSign != 0) {
-            GoToHeight(pos);
+        int targetPosition = (int)Math.max(-120, Math.min(currentPosition + power * 10, 1200));
+        if (currentPosition != targetPosition) {
+            GoToHeight(targetPosition);
+            armRight.setPower(power == 0 ? Math.signum(targetPosition - currentPosition) : power);
+            armLeft.setPower(power == 0 ? 1 : power);
         }
-        if (armRight.getPower() != powerSign) {
-            armRight.setPower(powerSign);
-            armLeft.setPower(powerSign);
+        else if (armRight.getPower() != 0) {
+            armRight.setPower(0);
+            armLeft.setPower(0);
         }
+
+        telemetry.addData("liftPos", armRight.getCurrentPosition());
+        telemetry.addData("liftTarget", targetPosition);
 
         boolean leftDpad = driverController.dpad_left;
         boolean rightDpad = driverController.dpad_right;

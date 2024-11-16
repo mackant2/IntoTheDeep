@@ -51,11 +51,12 @@ public class ITDTeleOp extends LinearOpMode {
             intake.Update();
             drivetrain.Update();
             arm.Update();
+
+            telemetry.update();
         }
     }
 
     void ToggleClaw() {
-        telemetry.update();
         isClawOpen = !isClawOpen;
         claw.setPosition(isClawOpen ? 0 : 1);
     }

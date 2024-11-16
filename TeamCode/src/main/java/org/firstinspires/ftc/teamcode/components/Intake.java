@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Intake {
@@ -60,12 +61,13 @@ public class Intake {
         String leftSampleColor = GetSampleColor(leftColorSensor, leftDistanceSensor); //assume robot-forward orientation for these
         String rightSampleColor = GetSampleColor(rightColorSensor, rightDistanceSensor);
 
-        opMode.telemetry.addData("leftColor", leftSampleColor);
-        opMode.telemetry.addData("rightColor", rightSampleColor);
-        opMode.telemetry.update();
+        //If either color sensor returns white (no sample) then set to white, otherwise we know that the intake has a sample
+        String pattern = Objects.equals(leftSampleColor, "WHITE") || Objects.equals(rightSampleColor, "WHITE") ? "WHITE" : leftSampleColor;
 
-        if (leftSampleColor != null && rightSampleColor != null && leftSampleColor == rightSampleColor) {
-            display.setPattern(leftSampleColor == "blue" ? BlinkinPattern.BLUE : leftSampleColor == "red" ? BlinkinPattern.RED : BlinkinPattern.YELLOW);
+        display.setPattern(BlinkinPattern.valueOf(pattern));
+
+        //Again, if intake has a sample (not white)
+        if (!Objects.equals(pattern, "WHITE")) {
             if (!stopping.get()) {
                 stopping.set(true);
                 new Thread(() -> {
@@ -80,9 +82,6 @@ public class Intake {
                     stopping.set(false);
                 }).start();
             }
-        }
-        else {
-            display.setPattern(BlinkinPattern.WHITE);
         }
     }
 
@@ -99,7 +98,7 @@ public class Intake {
     };
 
     String GetSampleColor(ColorSensor colorSensor, DistanceSensor distanceSensor) {
-        String sampleColor = null;
+        String sampleColor = "WHITE";
         // Get the color values from the sensor
         int red = colorSensor.red();
         int green = colorSensor.green();
@@ -111,8 +110,8 @@ public class Intake {
         float value = hsvValues[2];
 
         if (saturation >= minSaturation && value >= minValue && distanceSensor.getDistance(DistanceUnit.CM) < 7) {
-            //check if color matches any sample colors
-            sampleColor = (hue >= 0 && hue < 65) ? "red" : (hue >= 65 && hue < 100) ? "yellow" : (hue >= 165 && hue < 240) ? "blue" : null;
+            //check if color matches any sample colors, or else white
+            sampleColor = (hue >= 0 && hue < 65) ? "RED" : (hue >= 65 && hue < 100) ? "YELLOW" : (hue >= 165 && hue < 240) ? "BLUE" : "WHITE";
         }
 
         return sampleColor;
