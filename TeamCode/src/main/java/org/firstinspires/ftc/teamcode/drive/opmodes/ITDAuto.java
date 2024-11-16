@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.components.Intake;
 import org.firstinspires.ftc.teamcode.components.Logger;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
-@Autonomous(name = "\uD83E\uDD16 ITDAuto", group = "*DRIVERS USE THIS*")
+@Autonomous(name = "ITDAuto", group = "*DRIVERS USE THIS*")
 public class ITDAuto extends LinearOpMode {
     Intake intake;
     Logger logger = new Logger();

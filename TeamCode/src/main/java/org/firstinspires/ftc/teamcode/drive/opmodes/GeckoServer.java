@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.drive.opmodes;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -11,13 +13,18 @@ import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
 
-@TeleOp(name = "\uD83D\uDEDC GeckoServer", group = "Gecko")
+@TeleOp(name = "GeckoServer", group = "Gecko")
 public class GeckoServer extends LinearOpMode {
     DcMotorEx intake;
+    RevBlinkinLedDriver led;
+    long startTime;
     @Override
     public void runOpMode() {
       SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
       intake = drive.Intake;
+      led = drive.display;
+
+      startTime = System.currentTimeMillis() / 1000;
 
       try {
         new HttpServer(3000);
@@ -27,6 +34,8 @@ public class GeckoServer extends LinearOpMode {
           telemetry.addData("Error", "Failed to start server: " + e.getMessage());
           telemetry.update();
       }
+
+      led.setPattern(BlinkinPattern.WHITE);
 
       waitForStart();
     }
@@ -54,7 +63,10 @@ public class GeckoServer extends LinearOpMode {
           case "/toggle_intake":
             boolean isOn = Boolean.parseBoolean(queryParams.get("state"));
             intake.setPower(isOn ? -0.5 : 0);
-
+            break;
+          case "toggle_thinking":
+            boolean isThinking = Boolean.parseBoolean(queryParams.get("state"));
+            led.setPattern(isThinking ? BlinkinPattern.BREATH_BLUE : BlinkinPattern.WHITE);
             break;
         }
 

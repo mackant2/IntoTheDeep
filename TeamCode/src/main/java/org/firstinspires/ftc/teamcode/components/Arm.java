@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.components;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -43,7 +42,8 @@ public class Arm {
 
     public void Initialize() {
         //initialize four bar to transfer
-        RotateFourBar(1);
+        RotateFourBar(0);
+        GoToHeight(-120);
         wrist.setPosition(0.2);
     }
 
