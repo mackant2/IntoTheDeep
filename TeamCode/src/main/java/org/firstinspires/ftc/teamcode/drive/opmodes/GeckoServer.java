@@ -24,8 +24,6 @@ public class GeckoServer extends LinearOpMode {
       intake = drive.Intake;
       led = drive.display;
 
-      startTime = System.currentTimeMillis() / 1000;
-
       try {
         new HttpServer(3000);
           telemetry.addData("Status", "Server started on port 3000");
