@@ -42,9 +42,7 @@ public class Arm {
 
     public void Initialize() {
         //initialize four bar to transfer
-        RotateFourBar(0);
         GoToHeight(50);
-        wrist.setPosition(0.2);
     }
 
     public void GoToHeight(int height) {
@@ -98,8 +96,9 @@ public class Arm {
             RotateFourBar(leftClamped);
         }*/
 
-        float clamped = clamp(targetPosition, 50, 600) - 50;
-        RotateFourBar(clamped / 550);
+        float clamped = (clamp(targetPosition, 50, 600) - 50) / 550;
+        RotateFourBar(1 - clamped);
+        wrist.setPosition(clamped);
         telemetry.addData("pos", leftFourBar.getPosition());
     }
 }

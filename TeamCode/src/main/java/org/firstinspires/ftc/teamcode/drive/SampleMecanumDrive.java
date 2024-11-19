@@ -76,7 +76,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public DcMotorEx left_front, left_back, right_back, right_front, liftLeft, liftRight, extendo, intake;
     private final List<DcMotorEx> motors;
 
-    public Servo claw, leftFourBar, rightFourBar, wrist, flipdown;
+    public Servo claw, leftFourBar, rightFourBar, wrist, flipdown, gate;
 
     public RevBlinkinLedDriver display;
 
@@ -105,6 +105,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         rightFourBar = hardwareMap.get(Servo.class, "rightFourBar");
         wrist = hardwareMap.get(Servo.class, "wrist");
         flipdown = hardwareMap.get(Servo.class, "flipdown");
+        gate = hardwareMap.get(Servo.class, "gate");
 
         leftColorSensor = hardwareMap.get(ColorSensor.class, "leftColorSensor");
         rightColorSensor = hardwareMap.get(ColorSensor.class, "rightColorSensor");

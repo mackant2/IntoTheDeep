@@ -22,7 +22,7 @@ public class Intake {
     DcMotorEx intake, extender;
     ColorSensor leftColorSensor, rightColorSensor;
     DistanceSensor leftDistanceSensor, rightDistanceSensor;
-    Servo flipdown;
+    Servo flipdown, gate;
     RevBlinkinLedDriver display;
     Logger logger;
     //color sensor config
@@ -42,6 +42,7 @@ public class Intake {
         leftDistanceSensor = drive.leftDistanceSensor;
         rightDistanceSensor = drive.rightDistanceSensor;
         flipdown = drive.flipdown;
+        gate = drive.gate;
         display = drive.display;
         extender = drive.extendo;
         assistantController = opMode.gamepad2;
@@ -54,7 +55,6 @@ public class Intake {
     public void Initialize() {
         //Move intake to flipped up and in
         flipdown.setPosition(0);
-        intake.setTargetPosition(0);
     }
 
     public void Update() {
@@ -72,15 +72,22 @@ public class Intake {
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    intake.setPower(0);
-                    flipdown.setPosition(0);
                     runningAutomatedIntake = false;
                 }).start();
             }
-        }
-        else {
+        } else {
             extender.setPower((assistantController.right_trigger - assistantController.left_trigger) * 0.2);
             opMode.telemetry.addData("power", extender.getPower());
+
+            if (flipdown.getPosition() != 0) {
+                intake.setPower(0);
+                flipdown.setPosition(0);
+            }
+        }
+
+        int targetPosition = flipdown.getPosition() == 0 ? 1 : 0;
+        if (gate.getPosition() != targetPosition) {
+            gate.setPosition(targetPosition);
         }
     }
 

@@ -47,11 +47,7 @@ public class ITDTeleOp extends LinearOpMode {
         //Toggle claw with A press - driver
         pressEventSystem.AddListener(driverController, "a", this::ToggleClaw);
         //Run intake with right bumper press - assistant
-        pressEventSystem.AddListener(assistantController, "right_bumper", () -> {
-            if (!intake.runningAutomatedIntake) {
-                intake.runningAutomatedIntake = true;
-            }
-        });
+        pressEventSystem.AddListener(assistantController, "right_bumper", () -> intake.runningAutomatedIntake = !intake.runningAutomatedIntake);
         while (!isStopRequested()) {
             //Update utils
             pressEventSystem.Update();
