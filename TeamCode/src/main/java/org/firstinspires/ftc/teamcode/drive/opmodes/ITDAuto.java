@@ -25,7 +25,6 @@ public class ITDAuto extends LinearOpMode {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
         arm = new Arm(drive, telemetry, gamepad1);
-
         intake = new Intake(drive, this, logger);
 
         Pose2d startPose = new Pose2d(0,0);
@@ -36,78 +35,49 @@ public class ITDAuto extends LinearOpMode {
         double outtakeTime = 0.8;
         int threeSamplesY = 26;
 
-        Pose2d dropPose = new Pose2d(-16, 0, Math.toRadians((0)));
-        Pose2d FirstSpot = new Pose2d(-10, 26, Math.toRadians((-90)));
+        Pose2d dropPose = new Pose2d(16, 0, Math.toRadians((0)));
+        Pose2d FirstSpot = new Pose2d(10, 26, Math.toRadians((-90)));
 
 
         Trajectory toFirstSpot = drive.trajectoryBuilder(dropPose)
-                .lineToSplineHeading(new Pose2d(-10, threeSamplesY, Math.toRadians(-90 )))
+                .lineToSplineHeading(new Pose2d(10, threeSamplesY, Math.toRadians(-90 )))
                 .build();
 
         Trajectory toSecondSpot = drive.trajectoryBuilder(dropPose)
-                .lineToSplineHeading(new Pose2d(-20, threeSamplesY, Math.toRadians(-90 )))
+                .lineToSplineHeading(new Pose2d(20, threeSamplesY, Math.toRadians(-90 )))
                 .build();
 
         Trajectory toDropSpot = drive.trajectoryBuilder(FirstSpot)
-                .lineToSplineHeading(new Pose2d(-16, 0, Math.toRadians(0)))
+                .lineToSplineHeading(new Pose2d(16, 0, Math.toRadians(0)))
                 .build();
 
         TrajectorySequence almostEverything = drive.trajectorySequenceBuilder(startPose)
                  .addTemporalMarker(() -> {
                      arm.GoToHeight(Arm.Height.UPPER_BUCKET);
-                   logger.Log("raising arm with sample 1");
                  })
-                .waitSeconds(armLiftTime)
-                .addTemporalMarker(() -> logger.Log("to drop one"))
                 .lineToSplineHeading(dropPose)
-                .addTemporalMarker(() -> logger.Log("outtake one start"))
-                .addTemporalMarker(4, intake.Outtake)
-                .waitSeconds(outtakeTime)
-                .addTemporalMarker(() -> logger.Log("to pickup one"))
-                .addTrajectory(toFirstSpot)
-                .addTemporalMarker(() -> logger.Log("arm down one start"))
-                .waitSeconds(armLiftTime)
-                .addTemporalMarker(() -> logger.Log("intake one start"))
-                .addTemporalMarker(intake.Intake)
-                .waitSeconds(intakeTime)
-                .addTemporalMarker(() -> {
-                    arm.GoToHeight(Arm.Height.UPPER_BUCKET);
-                    logger.Log("raising arm with sample 2");
-                    logger.close();
-                })
-                .waitSeconds(armLiftTime)
+                /*pgt[=f.addTrajectory(toFirstSpot)
                 .addTrajectory(toDropSpot)
-                .addTemporalMarker(4, intake.Outtake)
-                .waitSeconds(outtakeTime)
                 .addTrajectory(toSecondSpot)
-                .waitSeconds(armLiftTime)
-                .addTemporalMarker(intake.Intake)
-                .waitSeconds(intakeTime)
-                .addTemporalMarker(() -> {
-                  arm.GoToHeight(Arm.Height.UPPER_BUCKET);
-                  logger.Log("raising arm with sample 3");
-                  logger.close();
-                })
-                .waitSeconds(armLiftTime)
-               // .lineToSplineHeading(dropPose)
-                .addTemporalMarker(intake.Outtake)
-                .waitSeconds(outtakeTime)
-                .lineToSplineHeading(new Pose2d(0, 0))
+                .lineToSplineHeading(dropPose)
+                .lineToSplineHeading(new Pose2d(0, 0))*/
                 .build();
-        telemetry.addData("almost everything",1);
-        telemetry.update();
-        sleep(5000);
+
         waitForStart();
 
         if (isStopRequested()) return;
 
+        telemetry.addData("Beforeawdawd", 1);
+        telemetry.update();
+        drive.followTrajectorySequenceAsync(almostEverything);
+        telemetry.addData("aiowjdaiowdjaiowjd", 1);
+        telemetry.update();
+
         //update components
         while (opModeIsActive()) {
-          //update components
-          intake.Update();
-          arm.Update();
+            //update components
+            intake.Update();
+            arm.Update();
         }
-
-        drive.followTrajectorySequence(almostEverything);
     }
 }

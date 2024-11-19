@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.components;
+
 import android.graphics.Color;
 
 import com.acmerobotics.roadrunner.trajectory.MarkerCallback;
@@ -6,22 +7,21 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.apache.commons.math3.analysis.integration.IterativeLegendreGaussIntegrator;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Intake {
-    DcMotor intake;
-    ColorSensor leftColorSensor;
-    ColorSensor rightColorSensor;
-    DistanceSensor leftDistanceSensor;
-    DistanceSensor rightDistanceSensor;
+    DcMotorEx intake, extender;
+    ColorSensor leftColorSensor, rightColorSensor;
+    DistanceSensor leftDistanceSensor, rightDistanceSensor;
     Servo flipdown;
     RevBlinkinLedDriver display;
     Logger logger;
@@ -29,47 +29,43 @@ public class Intake {
     float minSaturation = 0.4f;
     float minValue = 0.4f;
     float[] hsvValues = new float[3];
-    AtomicBoolean stopping = new AtomicBoolean(false);
-    boolean flippedDown = false;
+    public boolean runningAutomatedIntake = false;
     LinearOpMode opMode;
+    Gamepad assistantController;
 
     public Intake(SampleMecanumDrive drive, LinearOpMode opMode, Logger logger) {
         this.opMode = opMode;
         this.logger = logger;
-        intake = drive.Intake;
+        intake = drive.intake;
         leftColorSensor = drive.leftColorSensor;
         rightColorSensor = drive.rightColorSensor;
         leftDistanceSensor = drive.leftDistanceSensor;
         rightDistanceSensor = drive.rightDistanceSensor;
         flipdown = drive.flipdown;
         display = drive.display;
-    }
-
-    public void Run() {
-        if (!flippedDown) {
-            flippedDown = true;
-            flipdown.setPosition(1);
-            intake.setPower(-1);
-        }
+        extender = drive.extendo;
+        assistantController = opMode.gamepad2;
     }
 
     public boolean IsRunning() {
-        return intake.getPower() == -1;
+        return intake.getPower() != 0;
+    }
+
+    public void Initialize() {
+        //Move intake to flipped up and in
+        flipdown.setPosition(0);
+        intake.setTargetPosition(0);
     }
 
     public void Update() {
-        String leftSampleColor = GetSampleColor(leftColorSensor, leftDistanceSensor); //assume robot-forward orientation for these
-        String rightSampleColor = GetSampleColor(rightColorSensor, rightDistanceSensor);
+        if (runningAutomatedIntake) {
+            if (flipdown.getPosition() != 1) {
+                flipdown.setPosition(1);
+                intake.setPower(-1);
+            }
 
-        //If either color sensor returns white (no sample) then set to white, otherwise we know that the intake has a sample
-        String pattern = Objects.equals(leftSampleColor, "WHITE") || Objects.equals(rightSampleColor, "WHITE") ? "WHITE" : leftSampleColor;
-
-        display.setPattern(BlinkinPattern.valueOf(pattern));
-
-        //Again, if intake has a sample (not white)
-        if (!Objects.equals(pattern, "WHITE")) {
-            if (!stopping.get()) {
-                stopping.set(true);
+            //Again, if intake has a sample (not white)
+            if (!Objects.equals(GetSampleColor(), "WHITE")) {
                 new Thread(() -> {
                     try {
                         Thread.sleep(500);
@@ -77,11 +73,14 @@ public class Intake {
                         throw new RuntimeException(e);
                     }
                     intake.setPower(0);
-                    flippedDown = false;
                     flipdown.setPosition(0);
-                    stopping.set(false);
+                    runningAutomatedIntake = false;
                 }).start();
             }
+        }
+        else {
+            extender.setPower((assistantController.right_trigger - assistantController.left_trigger) * 0.2);
+            opMode.telemetry.addData("power", extender.getPower());
         }
     }
 
@@ -97,7 +96,16 @@ public class Intake {
         logger.Log("samplestore started intake");
     };
 
-    String GetSampleColor(ColorSensor colorSensor, DistanceSensor distanceSensor) {
+    String GetSampleColor() {
+        String leftSampleColor = QueryColorSensor(leftColorSensor, leftDistanceSensor); //assume robot-forward orientation for these
+        String rightSampleColor = QueryColorSensor(rightColorSensor, rightDistanceSensor);
+        //If either color sensor returns white (no sample) then set to white, otherwise we know that the intake has a sample
+        String sampleColor = Objects.equals(leftSampleColor, "WHITE") || Objects.equals(rightSampleColor, "WHITE") ? "WHITE" : leftSampleColor;
+        display.setPattern(BlinkinPattern.valueOf(sampleColor));
+        return sampleColor;
+    }
+
+    String QueryColorSensor(ColorSensor colorSensor, DistanceSensor distanceSensor) {
         String sampleColor = "WHITE";
         // Get the color values from the sensor
         int red = colorSensor.red();

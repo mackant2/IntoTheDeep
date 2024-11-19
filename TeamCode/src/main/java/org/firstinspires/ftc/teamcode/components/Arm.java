@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 public class Arm {
     Telemetry telemetry;
     Gamepad driverController;
-    DcMotorEx armLeft, armRight;
+    DcMotorEx liftLeft, liftRight;
     Servo leftFourBar, rightFourBar, wrist;
 
     public static class Height {
@@ -23,7 +23,7 @@ public class Arm {
 
     void RotateFourBar(double position) {
         leftFourBar.setPosition(position);
-        rightFourBar.setPosition(1 - position);
+        rightFourBar.setPosition(position);
     }
 
     public Arm(SampleMecanumDrive drive, Telemetry telemetry, Gamepad driverController) {
@@ -31,8 +31,8 @@ public class Arm {
         this.telemetry = telemetry;
 
         //assign motors
-        armLeft = drive.armLeft;
-        armRight = drive.armRight;
+        liftLeft = drive.liftLeft;
+        liftRight = drive.liftRight;
         //assign servos
         //four bar - 0 is out, 1 is transfer position
         leftFourBar = drive.leftFourBar;
@@ -43,43 +43,48 @@ public class Arm {
     public void Initialize() {
         //initialize four bar to transfer
         RotateFourBar(0);
-        GoToHeight(-120);
+        GoToHeight(50);
         wrist.setPosition(0.2);
     }
 
     public void GoToHeight(int height) {
-        armLeft.setTargetPosition(height);
-        armRight.setTargetPosition(height);
+        liftLeft.setTargetPosition(height);
+        liftRight.setTargetPosition(height);
+    }
+
+    void AdjustPower(float power) {
+        liftRight.setPower(power);
+        liftLeft.setPower(power);
     }
 
     public boolean IsMoving() {
-        return armLeft.isBusy();
+        return liftRight.isBusy();
+    }
+
+    float clamp(float num, float min, float max) {
+        return Math.max(min, Math.min(num, max));
     }
 
     public void Update() {
         float armUp = driverController.right_trigger;
         float armDown = driverController.left_trigger;
         float power = armUp - armDown;
-        int currentPosition = armRight.getCurrentPosition();
+        int currentPosition = liftRight.getCurrentPosition();
         //Math.clamp causes crash here, so using custom method
-        int targetPosition = (int)Math.max(-120, Math.min(currentPosition + power * 10, 1200));
+        int targetPosition = (int)clamp(liftRight.getTargetPosition() + power * 10, 50, 1200);
         if (currentPosition != targetPosition) {
             GoToHeight(targetPosition);
-            armRight.setPower(power == 0 ? Math.signum(targetPosition - currentPosition) : power);
-            armLeft.setPower(power == 0 ? 1 : power);
-        }
-        else if (armRight.getPower() != 0) {
-            armRight.setPower(0);
-            armLeft.setPower(0);
         }
 
-        telemetry.addData("liftPos", armRight.getCurrentPosition());
+        AdjustPower(clamp((float)(targetPosition - currentPosition) / 250, -1, 1));
+
+        telemetry.addData("liftPos", liftRight.getCurrentPosition());
         telemetry.addData("liftTarget", targetPosition);
 
         boolean leftDpad = driverController.dpad_left;
         boolean rightDpad = driverController.dpad_right;
 
-        double leftPos = leftFourBar.getPosition();
+        /*double leftPos = leftFourBar.getPosition();
         double change = 0;
         if (leftDpad) {
             change -= 0.01;
@@ -91,6 +96,10 @@ public class Arm {
         double leftClamped = Math.max(0, Math.min(leftPos + change, 1));
         if (change != 0) {
             RotateFourBar(leftClamped);
-        }
+        }*/
+
+        float clamped = clamp(targetPosition, 50, 600) - 50;
+        RotateFourBar(clamped / 550);
+        telemetry.addData("pos", leftFourBar.getPosition());
     }
 }

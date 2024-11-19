@@ -73,10 +73,10 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     private TrajectoryFollower follower;
 
-    public DcMotorEx left_front, left_back, right_back, right_front, armLeft, armRight, Extendo, Intake;
-    private List<DcMotorEx> motors;
+    public DcMotorEx left_front, left_back, right_back, right_front, liftLeft, liftRight, extendo, intake;
+    private final List<DcMotorEx> motors;
 
-    public Servo claw, leftFourBar, rightFourBar, servoLeft, servoRight, wrist, flipdown;
+    public Servo claw, leftFourBar, rightFourBar, wrist, flipdown;
 
     public RevBlinkinLedDriver display;
 
@@ -88,8 +88,6 @@ public class SampleMecanumDrive extends MecanumDrive {
     private List<Integer> lastEncPositions = new ArrayList<>();
     private List<Integer> lastEncVels = new ArrayList<>();
 
-    private ElapsedTime period  = new ElapsedTime();
-
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
 
@@ -97,16 +95,14 @@ public class SampleMecanumDrive extends MecanumDrive {
         left_back = hardwareMap.get(DcMotorEx.class, "left_back");
         right_back = hardwareMap.get(DcMotorEx.class, "right_back");
         right_front = hardwareMap.get(DcMotorEx.class, "right_front");
-        armLeft = hardwareMap.get(DcMotorEx.class, "armLeft");
-        armRight= hardwareMap.get(DcMotorEx.class, "armRight");
-        Extendo= hardwareMap.get(DcMotorEx.class, "Extendo");
-        Intake = hardwareMap.get(DcMotorEx.class, "Intake");
+        liftLeft = hardwareMap.get(DcMotorEx.class, "liftLeft");
+        liftRight = hardwareMap.get(DcMotorEx.class, "liftRight");
+        extendo = hardwareMap.get(DcMotorEx.class, "Extendo");
+        intake = hardwareMap.get(DcMotorEx.class, "Intake");
 
         claw = hardwareMap.get(Servo.class, "claw");
         leftFourBar = hardwareMap.get(Servo.class, "leftFourBar");
         rightFourBar = hardwareMap.get(Servo.class, "rightFourBar");
-        servoLeft = hardwareMap.get(Servo.class, "servoLeft");
-        servoRight = hardwareMap.get(Servo.class, "servoRight");
         wrist = hardwareMap.get(Servo.class, "wrist");
         flipdown = hardwareMap.get(Servo.class, "flipdown");
 
@@ -121,21 +117,24 @@ public class SampleMecanumDrive extends MecanumDrive {
         left_back.setPower(0);
         left_front.setPower(0);
         right_front.setPower(0);
-        armLeft.setPower(0);
-        armRight.setPower(0);
-        Extendo.setPower(0);
-        Intake.setPower(0);
+        liftLeft.setPower(0);
+        liftRight.setPower(0);
+        extendo.setPower(0);
+        intake.setPower(0);
         //Set drivetrain to run without encoders
         right_back.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         left_back.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         left_front.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         right_front.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        armLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        armRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        Extendo.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        Intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        liftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        extendo.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftFourBar.setDirection(Servo.Direction.FORWARD);
         rightFourBar.setDirection(Servo.Direction.REVERSE);
+
+        liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID,
                 new Pose2d(0.5, 0.5, Math.toRadians(5.0)), 0.5);
@@ -148,8 +147,6 @@ public class SampleMecanumDrive extends MecanumDrive {
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
-
-        // TODO: adjust the names of the following hardware devices to match your configuration
 
         motors = Arrays.asList(left_front, left_back, right_back, right_front);
 
@@ -169,15 +166,13 @@ public class SampleMecanumDrive extends MecanumDrive {
             setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, MOTOR_VELO_PID);
         }
 
-        // TODO: reverse any motors using DcMotor.setDirection()
-        armLeft.setDirection(Direction.REVERSE);
+        liftLeft.setDirection(Direction.REVERSE);
         left_back.setDirection(Direction.REVERSE);
         right_back.setDirection(Direction.REVERSE);
 
         List<Integer> lastTrackingEncPositions = new ArrayList<>();
         List<Integer> lastTrackingEncVels = new ArrayList<>();
 
-        // TODO: if desired, use setLocalizer() to change the localization method
         setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap, lastTrackingEncPositions, lastTrackingEncVels));
 
         trajectorySequenceRunner = new TrajectorySequenceRunner(

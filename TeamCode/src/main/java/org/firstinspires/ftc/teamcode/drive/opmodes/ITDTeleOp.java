@@ -24,6 +24,9 @@ public class ITDTeleOp extends LinearOpMode {
         driverController = gamepad1;
         assistantController = gamepad2;
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+
+        claw = drive.claw;
+
         PressEventSystem pressEventSystem = new PressEventSystem(telemetry);
         Logger logger = new Logger();
         logger.Initialize(telemetry);
@@ -31,7 +34,7 @@ public class ITDTeleOp extends LinearOpMode {
         Drivetrain drivetrain = new Drivetrain(drive, driverController);
         Arm arm = new Arm(drive, telemetry, driverController);
 
-        claw = drive.claw;
+        logger.Initialize(telemetry);
 
         waitForStart();
 
@@ -39,11 +42,16 @@ public class ITDTeleOp extends LinearOpMode {
         claw.setPosition(1);
         //initialize four bar to transfer
         arm.Initialize();
+        intake.Initialize();
 
         //Toggle claw with A press - driver
         pressEventSystem.AddListener(driverController, "a", this::ToggleClaw);
-        //Run intake with right bumper press - driver
-        pressEventSystem.AddListener(driverController, "right_bumper", intake::Run);
+        //Run intake with right bumper press - assistant
+        pressEventSystem.AddListener(assistantController, "right_bumper", () -> {
+            if (!intake.runningAutomatedIntake) {
+                intake.runningAutomatedIntake = true;
+            }
+        });
         while (!isStopRequested()) {
             //Update utils
             pressEventSystem.Update();

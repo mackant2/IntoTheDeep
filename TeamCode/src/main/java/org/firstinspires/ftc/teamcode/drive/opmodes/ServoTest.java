@@ -10,24 +10,29 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 @TeleOp (group = "Demo")
 public class ServoTest extends LinearOpMode {
 
-@Override
-public void runOpMode() throws InterruptedException {
-    SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-    Servo intake;
-    intake = hardwareMap.get(Servo.class, "intake");
+    @Override
+    public void runOpMode() throws InterruptedException {
+        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        Servo leftFourBar, rightFourBar, intake;
+        leftFourBar = drive.leftFourBar;
+        rightFourBar = drive.rightFourBar;
 
-    waitForStart();
-    while (!isStopRequested()) {
-        if (gamepad1.right_bumper) {
-            intake.setPosition(0);
-        } else if (gamepad1.left_bumper) {
-            intake.setPosition(1);
-        } else {
-            intake.setPosition(0);
+        waitForStart();
+        while (!isStopRequested()) {
+
+            if (gamepad1.x) {
+                leftFourBar.setPosition(0);
+                rightFourBar.setPosition(0);
+            }
+            if (gamepad1.a) {
+                leftFourBar.setPosition(.5);
+                rightFourBar.setPosition(.5);
+            }
+            if (gamepad1.b) {
+                leftFourBar.setPosition(1);
+                rightFourBar.setPosition(1);
+            }
+
         }
-
-
     }
-
-}
 }

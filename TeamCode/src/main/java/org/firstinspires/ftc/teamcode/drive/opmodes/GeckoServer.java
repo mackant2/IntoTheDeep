@@ -21,7 +21,7 @@ public class GeckoServer extends LinearOpMode {
     @Override
     public void runOpMode() {
       SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-      intake = drive.Intake;
+      intake = drive.intake;
       led = drive.display;
 
       try {

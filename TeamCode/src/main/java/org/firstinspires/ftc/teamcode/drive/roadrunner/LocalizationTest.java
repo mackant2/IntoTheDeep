@@ -24,13 +24,13 @@ public class LocalizationTest extends LinearOpMode {
 
         Servo wrist;
 
-        DcMotor armLeft, armRight;
+       // DcMotor armLeft, armRight;
 
-        armLeft = hardwareMap.get(DcMotorEx.class, "armLeft");
-        armRight = hardwareMap.get(DcMotorEx.class, "armRight");
+      //  armLeft = hardwareMap.get(DcMotorEx.class, "armLeft");
+      //  armRight = hardwareMap.get(DcMotorEx.class, "armRight");
 
-        armLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        armRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      //  armLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    //    armRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
           wrist = hardwareMap.get(Servo.class, "wrist");
 
@@ -53,8 +53,8 @@ public class LocalizationTest extends LinearOpMode {
             telemetry.addData("x", poseEstimate.getX());
             telemetry.addData("y", poseEstimate.getY());
             telemetry.addData("heading", poseEstimate.getHeading());
-            telemetry.addData("height", armRight.getCurrentPosition());
-            telemetry.addData("height", armLeft.getCurrentPosition());
+         //   telemetry.addData("height", armRight.getCurrentPosition());
+         //   telemetry.addData("height", armLeft.getCurrentPosition());
             telemetry.update();
 
             if (gamepad1.right_bumper){
@@ -67,8 +67,8 @@ public class LocalizationTest extends LinearOpMode {
                 wrist.setPosition(.5);
             }
 
-            armLeft.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
-            armRight.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
+      //      armLeft.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
+     //       armRight.setPower(gamepad1.right_trigger - gamepad1.left_trigger);
 
         }
     }
