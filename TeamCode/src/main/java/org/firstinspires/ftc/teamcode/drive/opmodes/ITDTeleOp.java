@@ -12,12 +12,18 @@ import org.firstinspires.ftc.teamcode.components.Logger;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.util.custom.PressEventSystem;
 
-@TeleOp (name = "*ITDTeleOp*", group = "*DRIVERS USE THIS*")
+@TeleOp (name = "[OFFICIAL] TeleOp", group = "official")
 public class ITDTeleOp extends LinearOpMode {
     Servo claw;
-    boolean isClawOpen = false;
     Gamepad driverController;
     Gamepad assistantController;
+    Intake intake;
+    Arm arm;
+
+    void Transfer() {
+        arm.state = Arm.ArmState.Transferring;
+        intake.state = Intake.IntakeState.Transferring;
+    }
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -25,43 +31,35 @@ public class ITDTeleOp extends LinearOpMode {
         assistantController = gamepad2;
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        claw = drive.claw;
-
         PressEventSystem pressEventSystem = new PressEventSystem(telemetry);
         Logger logger = new Logger();
         logger.Initialize(telemetry);
-        Intake intake = new Intake(drive, this, logger);
+        intake = new Intake(drive, this, logger);
         Drivetrain drivetrain = new Drivetrain(drive, driverController);
-        Arm arm = new Arm(drive, telemetry, driverController);
+        arm = new Arm(drive, telemetry, driverController);
 
         logger.Initialize(telemetry);
 
         waitForStart();
 
-        //initialize claw to open for transfer
-        claw.setPosition(1);
         //initialize four bar to transfer
         arm.Initialize();
         intake.Initialize();
 
         //Toggle claw with A press - driver
-        pressEventSystem.AddListener(driverController, "a", this::ToggleClaw);
+        pressEventSystem.AddListener(driverController, "a", () -> arm.ToggleClaw());
         //Run intake with right bumper press - assistant
-        pressEventSystem.AddListener(assistantController, "right_bumper", () -> intake.runningAutomatedIntake = !intake.runningAutomatedIntake);
+        pressEventSystem.AddListener(driverController, "right_bumper", () -> intake.state = intake.state == Intake.IntakeState.RunningAutomatedIntake ? Intake.IntakeState.Idle : Intake.IntakeState.RunningAutomatedIntake);
+        pressEventSystem.AddListener(driverController, "left_bumper", this::Transfer);
         while (!isStopRequested()) {
             //Update utils
             pressEventSystem.Update();
             //Update components
-            intake.Update();
             drivetrain.Update();
             arm.Update();
+            intake.Update();
 
             telemetry.update();
         }
-    }
-
-    void ToggleClaw() {
-        isClawOpen = !isClawOpen;
-        claw.setPosition(isClawOpen ? 0 : 1);
     }
 }

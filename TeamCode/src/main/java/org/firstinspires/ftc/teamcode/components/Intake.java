@@ -19,6 +19,12 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import java.util.Objects;
 
 public class Intake {
+    public enum IntakeState {
+        Idle,
+        RunningAutomatedIntake,
+        Transferring
+    }
+    public IntakeState state = IntakeState.Idle;
     DcMotorEx intake, extender;
     ColorSensor leftColorSensor, rightColorSensor;
     DistanceSensor leftDistanceSensor, rightDistanceSensor;
@@ -29,7 +35,6 @@ public class Intake {
     float minSaturation = 0.4f;
     float minValue = 0.4f;
     float[] hsvValues = new float[3];
-    public boolean runningAutomatedIntake = false;
     LinearOpMode opMode;
     Gamepad assistantController;
 
@@ -58,7 +63,7 @@ public class Intake {
     }
 
     public void Update() {
-        if (runningAutomatedIntake) {
+        if (state == IntakeState.RunningAutomatedIntake) {
             if (flipdown.getPosition() != 1) {
                 flipdown.setPosition(1);
                 intake.setPower(-1);
@@ -72,23 +77,39 @@ public class Intake {
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    runningAutomatedIntake = false;
+                    state = IntakeState.Idle;
                 }).start();
             }
-        } else {
-            extender.setPower((assistantController.right_trigger - assistantController.left_trigger) * 0.2);
-            opMode.telemetry.addData("power", extender.getPower());
+        }
+        else if (state == IntakeState.Transferring) {
+            if (intake.getPower() != -0.1) {
+                intake.setPower(-0.1);
 
-            if (flipdown.getPosition() != 0) {
-                intake.setPower(0);
-                flipdown.setPosition(0);
+                if (Objects.equals(GetSampleColor(), "WHITE")) {
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(1200);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        state = IntakeState.Idle;
+                    }).start();
+                }
             }
         }
+        else {
+            extender.setPower((assistantController.right_trigger - assistantController.left_trigger) * 0.4);
 
-        int targetPosition = flipdown.getPosition() == 0 ? 1 : 0;
-        if (gate.getPosition() != targetPosition) {
-            gate.setPosition(targetPosition);
+            intake.setPower(0);
         }
+
+        //Hard stop so intake doesn't flip down while in
+        if (extender.getCurrentPosition() > -300) {
+            flipdown.setPosition(0);
+        }
+
+        opMode.telemetry.addData("Intake State", state);
+        opMode.telemetry.addData("Intake Position", extender.getCurrentPosition());
     }
 
     public void SetRunning(boolean enabled) {

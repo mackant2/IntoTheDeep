@@ -28,7 +28,7 @@ public class DriveConstants {
     public static final RevHubOrientationOnRobot.LogoFacingDirection LOGO_FACING_DIR = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
     public static final RevHubOrientationOnRobot.UsbFacingDirection USB_FACING_DIR = RevHubOrientationOnRobot.UsbFacingDirection.UP;
 
-    public static final boolean RUN_USING_ENCODER = true;
+    public static final boolean RUN_USING_ENCODER = false;
     /*
      * Set RUN_USING_ENCODER to true to enable built-in hub velocity control using drive encoders.
      * Set this flag to false if drive encoders are not present and an alternative localization
@@ -70,8 +70,8 @@ public class DriveConstants {
      * small and gradually increase them later after everything is working. All distance units are
      * inches.
      */
-    public static double MAX_VEL = 200;
-    public static double MAX_ACCEL = 50;
+    public static double MAX_VEL = 50;
+    public static double MAX_ACCEL = 10;
     public static double MAX_ANG_VEL = Math.toRadians(214.17333333333333334);
     public static double MAX_ANG_ACCEL = Math.toRadians(214.1773333333333334);
 

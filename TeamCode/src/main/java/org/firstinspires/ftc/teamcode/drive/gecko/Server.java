@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.opmodes;
+package org.firstinspires.ftc.teamcode.drive.gecko;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
@@ -13,8 +13,8 @@ import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
 
-@TeleOp(name = "GeckoServer", group = "Gecko")
-public class GeckoServer extends LinearOpMode {
+@TeleOp(name = "[GECKO] Server", group = "gecko")
+public class Server extends LinearOpMode {
     DcMotorEx intake;
     RevBlinkinLedDriver led;
     long startTime;

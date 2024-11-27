@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.opmodes;
+package org.firstinspires.ftc.teamcode.drive.demo;
 
 import android.graphics.Color;
 
@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@TeleOp(name = "IntakeDemo", group = "Demo")
+@TeleOp(name = "[DEMO] Intake", group = "demo")
 public class IntakeDemo extends LinearOpMode {
 
     private ColorSensor colorSensor1;

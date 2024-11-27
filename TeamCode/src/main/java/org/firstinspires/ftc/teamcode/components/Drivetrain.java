@@ -17,24 +17,25 @@ public class Drivetrain {
   double lbVelocity;
   double lfVelocity;
   DcMotorEx rightBack, rightFront, leftBack, leftFront;
-  double rotationFactor = 0.5;
+  double rotationFactor = 0.8;
+  final int SPEED = 850;
 
   public Drivetrain(SampleMecanumDrive drive, Gamepad driverController) {
     this.driverController = driverController;
-    rightBack = drive.right_back;
-    rightFront = drive.right_front;
-    leftBack = drive.left_back;
-    leftFront = drive.left_front;
+    rightBack = drive.backRight;
+    rightFront = drive.frontRight;
+    leftBack = drive.backLeft;
+    leftFront = drive.frontLeft;
   }
 
   public void Update() {
     double x = -driverController.left_stick_x;
     double y = driverController.left_stick_y;
     double r = driverController.right_stick_x * rotationFactor;
-    rbVelocity = x + y + r;
+    rbVelocity = -x - y - r;
     rfVelocity = x - y - r;
     lbVelocity = x - y + r;
-    lfVelocity = x + y - r ;
+    lfVelocity = -x - y + r ;
     velocities.add(rbVelocity); //right back
     velocities.add(rfVelocity); //right front
     velocities.add(lbVelocity); //left back
@@ -46,10 +47,14 @@ public class Drivetrain {
       lbVelocity /= absMax;
       lfVelocity /= absMax;
     }
+    /*rightBack.setVelocity(rbVelocity * SPEED);
+    rightFront.setVelocity(rfVelocity * SPEED);
+    leftBack.setVelocity(lbVelocity * SPEED);
+    leftFront.setVelocity(lfVelocity * SPEED);
+    velocities.clear();*/
     rightBack.setPower(rbVelocity);
     rightFront.setPower(rfVelocity);
     leftBack.setPower(lbVelocity);
     leftFront.setPower(lfVelocity);
-    velocities.clear();
   }
 }

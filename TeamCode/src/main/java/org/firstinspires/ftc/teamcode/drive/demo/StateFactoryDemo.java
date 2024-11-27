@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.opmodes;
+package org.firstinspires.ftc.teamcode.drive.demo;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.components.Logger;
 import org.firstinspires.ftc.teamcode.components.Intake;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
-@Autonomous(group = "Demo")
+@Autonomous(name = "[DEMO] StateFactory", group = "demo")
 public class StateFactoryDemo extends LinearOpMode {
     enum States {
         Extending,
