@@ -12,6 +12,8 @@ import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kA;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kStatic;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
 
+import android.text.method.Touch;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -40,6 +42,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -88,6 +91,8 @@ public class SampleMecanumDrive extends MecanumDrive {
     private List<Integer> lastEncPositions = new ArrayList<>();
     private List<Integer> lastEncVels = new ArrayList<>();
 
+    public TouchSensor liftLimiter;
+
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
 
@@ -112,6 +117,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         leftDistanceSensor = hardwareMap.get(DistanceSensor.class, "leftColorSensor");
         rightDistanceSensor = hardwareMap.get(DistanceSensor.class, "rightColorSensor");
 
+        liftLimiter = hardwareMap.get(TouchSensor.class, "liftLimiter");
+
         display = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
 
         frontLeft.setPower(0);
@@ -131,14 +138,20 @@ public class SampleMecanumDrive extends MecanumDrive {
         backLeft.setDirection(Direction.REVERSE);
         liftLeft.setTargetPosition(0);
         liftRight.setTargetPosition(0);
+        extendo.setTargetPosition(0);
         liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        extendo.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        extendo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftFourBar.setDirection(Servo.Direction.FORWARD);
         rightFourBar.setDirection(Servo.Direction.REVERSE);
 
+        extendo.setVelocity(1000);
+        liftLeft.setVelocity(1000);
+
         extendo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID,
                 new Pose2d(0.5, 0.5, Math.toRadians(5.0)), 0.5);

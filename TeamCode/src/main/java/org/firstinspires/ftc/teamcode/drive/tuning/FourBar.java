@@ -11,6 +11,9 @@ import org.firstinspires.ftc.teamcode.util.custom.PressEventSystem;
 
 @TeleOp (group = "tuning", name = "[TUNING] FourBar")
 public class FourBar extends LinearOpMode {
+    float clamp(float num, float min, float max) {
+        return Math.max(min, Math.min(num, max));
+    }
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -22,22 +25,47 @@ public class FourBar extends LinearOpMode {
         claw = drive.claw;
         wrist = drive.wrist;
 
+        drive.flipdown.setPosition(0);
+
         waitForStart();
 
         claw.setPosition(0.8);
+        drive.liftLeft.setTargetPosition(0);
 
-        pressEventSystem.AddListener(gamepad1, "x", () -> {leftFourBar.setPosition(0);rightFourBar.setPosition(0);});
-        pressEventSystem.AddListener(gamepad1, "a", () -> {leftFourBar.setPosition(0.5);rightFourBar.setPosition(0.5);});
-        pressEventSystem.AddListener(gamepad1, "b", () -> {leftFourBar.setPosition(1);rightFourBar.setPosition(1);});
-        pressEventSystem.AddListener(gamepad1, "y", () -> claw.setPosition(claw.getPosition() == 0.8 ? 0.1 : 0.8));
+        pressEventSystem.AddListener(gamepad1, "a", () -> claw.setPosition(claw.getPosition() == 0.8 ? 0.3 : 0.8));
+        pressEventSystem.AddListener(gamepad1, "dpad_up", () -> {
+            double newPos = leftFourBar.getPosition() + 0.01;
+            leftFourBar.setPosition(newPos);
+            rightFourBar.setPosition(newPos);
+        });
+        pressEventSystem.AddListener(gamepad1, "dpad_down", () -> {
+           double newPos = leftFourBar.getPosition() - 0.01;
+           leftFourBar.setPosition(newPos);
+           rightFourBar.setPosition(newPos);
+        });
+        pressEventSystem.AddListener(gamepad1, "dpad_left", () -> {
+            double newPos = clamp((float)(wrist.getPosition() + 0.01), 0, 1);
+            wrist.setPosition(newPos);
+        });
+        pressEventSystem.AddListener(gamepad1, "dpad_right", () -> {
+            double newPos = clamp((float)(wrist.getPosition() - 0.01), 0, 1);
+            wrist.setPosition(newPos);
+        });
 
         while (!isStopRequested()) {
             pressEventSystem.Update();
 
-            wrist.setPosition(gamepad1.right_trigger);
+            double newPos = clamp((float)(leftFourBar.getPosition() + (gamepad1.left_trigger - gamepad1.right_trigger) / 100), 0, 1);
+            leftFourBar.setPosition(newPos);
+            rightFourBar.setPosition(newPos);
+            telemetry.addData("--BINDS--", "");
+            telemetry.addData("Four Bar Binds", "A - toggle claw, triggers - move fast, D-pad up/down - increment position by 0.01");
+            telemetry.addData("Wrist binds", "D-pad left/right - increment position by 0.01");
+            telemetry.addData("--POSITIONS--", "");
             telemetry.addData("Four Bar Position", leftFourBar.getPosition());
             telemetry.addData("Claw Position", claw.getPosition());
             telemetry.addData("Wrist Position", wrist.getPosition());
+            telemetry.addData("Lift Position", drive.liftLeft.getCurrentPosition());
             telemetry.update();
         }
     }

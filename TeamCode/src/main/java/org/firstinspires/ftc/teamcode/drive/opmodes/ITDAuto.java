@@ -24,8 +24,8 @@ public class ITDAuto extends LinearOpMode {
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        arm = new Arm(drive, telemetry, gamepad1);
-        intake = new Intake(drive, this, logger);
+        arm = new Arm(drive, telemetry, gamepad1, () -> {});
+        intake = new Intake(drive, this, logger, () -> {});
 
         Pose2d startPose = new Pose2d(0,0);
         drive.setPoseEstimate(startPose);

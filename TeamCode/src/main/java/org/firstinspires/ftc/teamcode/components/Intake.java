@@ -12,19 +12,24 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.apache.commons.math3.analysis.integration.IterativeLegendreGaussIntegrator;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.util.custom.DelaySystem;
 
 import java.util.Objects;
 
 public class Intake {
     public enum IntakeState {
-        Idle,
+        DriverControlled,
         RunningAutomatedIntake,
         Transferring
     }
-    public IntakeState state = IntakeState.Idle;
+    static class GatePosition {
+        public static final int OPEN = 1;
+        public static final double CLOSED = 0;
+    }
+    public IntakeState state = IntakeState.DriverControlled;
+    DelaySystem delaySystem = new DelaySystem();
     DcMotorEx intake, extender;
     ColorSensor leftColorSensor, rightColorSensor;
     DistanceSensor leftDistanceSensor, rightDistanceSensor;
@@ -36,11 +41,17 @@ public class Intake {
     float minValue = 0.4f;
     float[] hsvValues = new float[3];
     LinearOpMode opMode;
-    Gamepad assistantController;
+    Gamepad driverController;
+    IntakeEvent transferFinished;
 
-    public Intake(SampleMecanumDrive drive, LinearOpMode opMode, Logger logger) {
+    public interface IntakeEvent {
+        void fire();
+    }
+
+    public Intake(SampleMecanumDrive drive, LinearOpMode opMode, Logger logger, IntakeEvent transferFinished) {
         this.opMode = opMode;
         this.logger = logger;
+        this.transferFinished = transferFinished;
         intake = drive.intake;
         leftColorSensor = drive.leftColorSensor;
         rightColorSensor = drive.rightColorSensor;
@@ -50,7 +61,7 @@ public class Intake {
         gate = drive.gate;
         display = drive.display;
         extender = drive.extendo;
-        assistantController = opMode.gamepad2;
+        driverController = opMode.gamepad1;
     }
 
     public boolean IsRunning() {
@@ -60,6 +71,17 @@ public class Intake {
     public void Initialize() {
         //Move intake to flipped up and in
         flipdown.setPosition(0);
+        gate.setPosition(GatePosition.CLOSED);
+    }
+
+    public void ToggleAutomatedIntake() {
+        if (state != IntakeState.RunningAutomatedIntake) {
+            state = state == IntakeState.DriverControlled ? IntakeState.RunningAutomatedIntake : IntakeState.DriverControlled;
+        }
+    }
+
+    float clamp(float num, float min, float max) {
+        return Math.max(min, Math.min(num, max));
     }
 
     public void Update() {
@@ -71,42 +93,39 @@ public class Intake {
 
             //Again, if intake has a sample (not white)
             if (!Objects.equals(GetSampleColor(), "WHITE")) {
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    state = IntakeState.Idle;
-                }).start();
+                delaySystem.CreateDelay(500, () -> state = IntakeState.DriverControlled);
             }
         }
         else if (state == IntakeState.Transferring) {
-            if (intake.getPower() != -0.1) {
-                intake.setPower(-0.1);
+            flipdown.setPosition(0);
+            gate.setPosition(GatePosition.OPEN);
+            intake.setPower(-1);
 
-                if (Objects.equals(GetSampleColor(), "WHITE")) {
-                    new Thread(() -> {
-                        try {
-                            Thread.sleep(1200);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                        state = IntakeState.Idle;
-                    }).start();
-                }
+            if (Objects.equals(GetSampleColor(), "WHITE")) {
+                delaySystem.CreateDelay(500, () -> {
+                    state = IntakeState.DriverControlled;
+                    transferFinished.fire();
+                });
             }
         }
         else {
-            extender.setPower((assistantController.right_trigger - assistantController.left_trigger) * 0.4);
+            double power = driverController.right_trigger - driverController.left_trigger;
+            if (power != 0) {
+                int currentPosition = extender.getCurrentPosition();
+                int change = currentPosition - (int)(power * 50);
+                extender.setTargetPosition((int)clamp(currentPosition + change, 0, 2000));
+            }
 
             intake.setPower(0);
+            flipdown.setPosition(0);
         }
 
         //Hard stop so intake doesn't flip down while in
         if (extender.getCurrentPosition() > -300) {
-            flipdown.setPosition(0);
+            //flipdown.setPosition(0);
         }
+
+        delaySystem.Update();
 
         opMode.telemetry.addData("Intake State", state);
         opMode.telemetry.addData("Intake Position", extender.getCurrentPosition());

@@ -26,8 +26,8 @@ public class StateFactoryDemo extends LinearOpMode {
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        Arm arm = new Arm(drive, telemetry, gamepad1);
-        Intake intake = new Intake(drive, this, logger);
+        Arm arm = new Arm(drive, telemetry, gamepad1, () -> {});
+        Intake intake = new Intake(drive, this, logger, () -> {});
 
         StateMachine stateMachine = new StateMachineBuilder()
                 .state(States.Extending)

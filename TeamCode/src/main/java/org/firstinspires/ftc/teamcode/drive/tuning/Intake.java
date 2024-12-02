@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.util.custom.PressEventSystem;
 
 
 @TeleOp (group = "tuning", name = "[TUNING] Intake")
@@ -13,19 +14,28 @@ public class Intake extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        PressEventSystem pressEventSystem = new PressEventSystem(telemetry);
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
         DcMotorEx intake = drive.intake;
         DcMotorEx extender = drive.extendo;
+        Servo flipdown = drive.flipdown;
 
         waitForStart();
+        flipdown.setPosition(0);
+        pressEventSystem.AddListener(gamepad1, "right_bumper", () -> flipdown.setPosition(flipdown.getPosition() == 0 ? 1 : 0));
         while (!isStopRequested()) {
-            intake.setPower(gamepad1.a ? -0.2 : 0);
-            telemetry.addData("intake", intake.getPower());
-            telemetry.addData("intake pos", intake.getCurrentPosition());
+            intake.setPower(gamepad1.a ? -0.5 : 0);
 
-            extender.setPower((gamepad1.left_trigger  - gamepad1.right_trigger) * 0.2);
-            telemetry.addData("extender position", extender.getCurrentPosition());
+            double power = gamepad1.right_trigger - gamepad1.left_trigger;
+            if (power != 0) {
+                int currentPosition = extender.getCurrentPosition();
+                int change = currentPosition - (int)(power * 10);
+                extender.setTargetPosition(currentPosition + change);
+            }
 
+            pressEventSystem.Update();
+
+            telemetry.addData("Extender Position", extender.getCurrentPosition());
             telemetry.update();
         }
     }

@@ -21,8 +21,15 @@ public class ITDTeleOp extends LinearOpMode {
     Arm arm;
 
     void Transfer() {
-        arm.state = Arm.ArmState.Transferring;
+        arm.stateMachine.setState(Arm.ArmState.InitiatingTransfer);
+    }
+
+    void Arm_TransferInitCompleted() {
         intake.state = Intake.IntakeState.Transferring;
+    }
+
+    void Intake_TransferCompleted() {
+        arm.stateMachine.setState(Arm.ArmState.Extracting);
     }
 
     @Override
@@ -30,27 +37,25 @@ public class ITDTeleOp extends LinearOpMode {
         driverController = gamepad1;
         assistantController = gamepad2;
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-
         PressEventSystem pressEventSystem = new PressEventSystem(telemetry);
         Logger logger = new Logger();
         logger.Initialize(telemetry);
-        intake = new Intake(drive, this, logger);
+        intake = new Intake(drive, this, logger, this::Intake_TransferCompleted);
         Drivetrain drivetrain = new Drivetrain(drive, driverController);
-        arm = new Arm(drive, telemetry, driverController);
+        arm = new Arm(drive, telemetry, assistantController, this::Arm_TransferInitCompleted);
 
         logger.Initialize(telemetry);
 
         waitForStart();
 
-        //initialize four bar to transfer
+        //initialize four bar
         arm.Initialize();
+        //flip intake up and bring in
         intake.Initialize();
 
-        //Toggle claw with A press - driver
-        pressEventSystem.AddListener(driverController, "a", () -> arm.ToggleClaw());
-        //Run intake with right bumper press - assistant
-        pressEventSystem.AddListener(driverController, "right_bumper", () -> intake.state = intake.state == Intake.IntakeState.RunningAutomatedIntake ? Intake.IntakeState.Idle : Intake.IntakeState.RunningAutomatedIntake);
-        pressEventSystem.AddListener(driverController, "left_bumper", this::Transfer);
+        pressEventSystem.AddListener(driverController, "a", arm::ToggleClaw);
+        pressEventSystem.AddListener(driverController, "right_bumper", intake::ToggleAutomatedIntake);
+        pressEventSystem.AddListener(driverController, "left_bumper", () -> arm.stateMachine.setState(Arm.ArmState.InitiatingTransfer));
         while (!isStopRequested()) {
             //Update utils
             pressEventSystem.Update();
