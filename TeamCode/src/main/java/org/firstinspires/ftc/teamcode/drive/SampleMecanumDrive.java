@@ -63,7 +63,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(6, 0, 0);
     public static PIDCoefficients HEADING_PID = new PIDCoefficients(6, 0, 0);
 
-    public static double LATERAL_MULTIPLIER = 1.13;
+    public static double LATERAL_MULTIPLIER = 1;
 
     public static double VX_WEIGHT = 1;
     public static double VY_WEIGHT = 1;
@@ -147,6 +147,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftFourBar.setDirection(Servo.Direction.FORWARD);
         rightFourBar.setDirection(Servo.Direction.REVERSE);
+        extendo.setDirection(Direction.REVERSE);
 
         extendo.setVelocity(1000);
         liftLeft.setVelocity(1000);

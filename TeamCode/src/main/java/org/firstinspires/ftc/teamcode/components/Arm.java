@@ -34,9 +34,10 @@ public class Arm {
     Gamepad assistantController;
     DcMotorEx liftLeft, liftRight;
     Servo leftFourBar, rightFourBar, wrist, claw;
-    final double MAX_FOURBAR_SPEED = 0.1;
+    final double MAX_FOURBAR_SPEED = 0.01;
     final double CLAW_OPEN = 0.8;
     final double CLAW_CLOSED = 0.3;
+    final int LIFT_SPEED = 200;
     public StateMachine stateMachine;
     Robot robot;
 
@@ -106,14 +107,14 @@ public class Arm {
         ArmState state = (ArmState)stateMachine.getState();
 
         if (state == ArmState.DriverControlled) {
-            double power = assistantController.left_stick_y;
+            double power = -assistantController.left_stick_y;
             if (power != 0) {
-                int pos = (int)clamp((float)(liftLeft.getCurrentPosition() + Math.floor(power * 50)), 0, 2500);
+                int pos = (int)clamp((float)(liftLeft.getCurrentPosition() + Math.floor(power * LIFT_SPEED)), 0, 2500);
                 liftLeft.setTargetPosition(pos);
             }
 
             double leftPos = leftFourBar.getPosition();
-            double change = assistantController.right_stick_y * MAX_FOURBAR_SPEED;
+            double change = -assistantController.right_stick_y * MAX_FOURBAR_SPEED;
             //Math.clamp causes crash here, so using custom method
             double leftClamped = clamp((float)(leftPos + change), (float)FourBarPosition.Transfer, 1);
             if (change != 0) {

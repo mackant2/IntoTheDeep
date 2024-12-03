@@ -4,12 +4,13 @@ import android.graphics.Color;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.sfdev.assembly.state.StateMachineBuilder;
+import com.sfdev.assembly.state.StateMachine;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
@@ -28,6 +29,10 @@ public class Intake {
         public static final int OPEN = 1;
         public static final double CLOSED = 0;
     }
+    static class ExtenderPosition {
+        public static final int IN = 10;
+        public static final int OUT = 2000;
+    }
     public IntakeState state = IntakeState.DriverControlled;
     DelaySystem delaySystem = new DelaySystem();
     DcMotorEx intake, extender;
@@ -41,10 +46,7 @@ public class Intake {
     float minValue = 0.4f;
     float[] hsvValues = new float[3];
     Gamepad driverController;
-
-    public interface IntakeEvent {
-        void fire();
-    }
+    StateMachine stateMachine;
 
     public Intake(SampleMecanumDrive drive, Robot robot) {
         this.robot = robot;
@@ -58,16 +60,20 @@ public class Intake {
         display = drive.display;
         extender = drive.extendo;
         driverController = robot.opMode.gamepad1;
-    }
 
-    public boolean IsRunning() {
-        return intake.getPower() != 0;
+        stateMachine = new StateMachineBuilder()
+                .state(IntakeState.DriverControlled)
+                .transition(() -> driverController.right_bumper)
+                .build();
     }
 
     public void Initialize() {
         //Move intake to flipped up and in
+        extender.setTargetPosition(500);
         flipdown.setPosition(0);
+        delaySystem.CreateDelay(500, () -> extender.setTargetPosition(ExtenderPosition.IN));
         //gate.setPosition(GatePosition.CLOSED);
+        extender.setTargetPosition(ExtenderPosition.IN);
     }
 
     public void ToggleAutomatedIntake() {
@@ -105,8 +111,8 @@ public class Intake {
             double power = driverController.right_trigger - driverController.left_trigger;
             if (power != 0) {
                 int currentPosition = extender.getCurrentPosition();
-                int change = currentPosition - (int)(power * 50);
-                extender.setTargetPosition((int)clamp(currentPosition + change, 0, 2000));
+                int target = currentPosition + (int)Math.round(power * 500);
+                extender.setTargetPosition((int)clamp(target, ExtenderPosition.IN, ExtenderPosition.OUT));
             }
 
             intake.setPower(0);
@@ -114,7 +120,7 @@ public class Intake {
         }
 
         //Hard stop so intake doesn't flip down while in
-        if (extender.getCurrentPosition() > -300) {
+        if (extender.getCurrentPosition() < 300) {
             flipdown.setPosition(0);
         }
 
@@ -123,10 +129,6 @@ public class Intake {
         robot.opMode.telemetry.addData("Intake State", state);
         robot.opMode.telemetry.addData("Intake Position", extender.getCurrentPosition());
         robot.opMode.telemetry.addData("Intake Target Position", extender.getTargetPosition());
-    }
-
-    public void SetRunning(boolean enabled) {
-        //intake.setPower(enabled ? -1 : 0);
     }
 
     String GetSampleColor() {
