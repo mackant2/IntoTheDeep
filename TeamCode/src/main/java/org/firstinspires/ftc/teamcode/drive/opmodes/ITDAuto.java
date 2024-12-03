@@ -20,11 +20,11 @@ public class ITDAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        logger.Initialize(telemetry);
+        /*logger.Initialize(telemetry);
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        arm = new Arm(drive, telemetry, gamepad1, () -> {});
+        arm = new Arm(drive, this, () -> {});
         intake = new Intake(drive, this, logger, () -> {});
 
         Pose2d startPose = new Pose2d(0,0);
@@ -61,7 +61,7 @@ public class ITDAuto extends LinearOpMode {
                 .addTrajectory(toSecondSpot)
                 .lineToSplineHeading(dropPose)
                 .lineToSplineHeading(new Pose2d(0, 0))*/
-                .build();
+                /*.build();
 
         waitForStart();
 
@@ -78,6 +78,6 @@ public class ITDAuto extends LinearOpMode {
             //update components
             intake.Update();
             arm.Update();
-        }
+        }*/
     }
 }

@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.components;
 
 import android.graphics.Color;
 
-import com.acmerobotics.roadrunner.trajectory.MarkerCallback;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -15,6 +14,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.util.custom.DelaySystem;
+import org.firstinspires.ftc.teamcode.util.custom.Robot;
 
 import java.util.Objects;
 
@@ -35,23 +35,19 @@ public class Intake {
     DistanceSensor leftDistanceSensor, rightDistanceSensor;
     Servo flipdown, gate;
     RevBlinkinLedDriver display;
-    Logger logger;
+    Robot robot;
     //color sensor config
     float minSaturation = 0.4f;
     float minValue = 0.4f;
     float[] hsvValues = new float[3];
-    LinearOpMode opMode;
     Gamepad driverController;
-    IntakeEvent transferFinished;
 
     public interface IntakeEvent {
         void fire();
     }
 
-    public Intake(SampleMecanumDrive drive, LinearOpMode opMode, Logger logger, IntakeEvent transferFinished) {
-        this.opMode = opMode;
-        this.logger = logger;
-        this.transferFinished = transferFinished;
+    public Intake(SampleMecanumDrive drive, Robot robot) {
+        this.robot = robot;
         intake = drive.intake;
         leftColorSensor = drive.leftColorSensor;
         rightColorSensor = drive.rightColorSensor;
@@ -61,7 +57,7 @@ public class Intake {
         gate = drive.gate;
         display = drive.display;
         extender = drive.extendo;
-        driverController = opMode.gamepad1;
+        driverController = robot.opMode.gamepad1;
     }
 
     public boolean IsRunning() {
@@ -71,7 +67,7 @@ public class Intake {
     public void Initialize() {
         //Move intake to flipped up and in
         flipdown.setPosition(0);
-        gate.setPosition(GatePosition.CLOSED);
+        //gate.setPosition(GatePosition.CLOSED);
     }
 
     public void ToggleAutomatedIntake() {
@@ -101,11 +97,8 @@ public class Intake {
             gate.setPosition(GatePosition.OPEN);
             intake.setPower(-1);
 
-            if (Objects.equals(GetSampleColor(), "WHITE")) {
-                delaySystem.CreateDelay(500, () -> {
-                    state = IntakeState.DriverControlled;
-                    transferFinished.fire();
-                });
+            if (robot.transferPlate.sampleIsPresent) {
+                state = IntakeState.DriverControlled;
             }
         }
         else {
@@ -122,26 +115,19 @@ public class Intake {
 
         //Hard stop so intake doesn't flip down while in
         if (extender.getCurrentPosition() > -300) {
-            //flipdown.setPosition(0);
+            flipdown.setPosition(0);
         }
 
         delaySystem.Update();
 
-        opMode.telemetry.addData("Intake State", state);
-        opMode.telemetry.addData("Intake Position", extender.getCurrentPosition());
+        robot.opMode.telemetry.addData("Intake State", state);
+        robot.opMode.telemetry.addData("Intake Position", extender.getCurrentPosition());
+        robot.opMode.telemetry.addData("Intake Target Position", extender.getTargetPosition());
     }
 
     public void SetRunning(boolean enabled) {
         //intake.setPower(enabled ? -1 : 0);
     }
-
-    public MarkerCallback Outtake = () -> {
-        logger.Log("samplestore started outtake");
-    };
-
-    public MarkerCallback Intake = () -> {
-        logger.Log("samplestore started intake");
-    };
 
     String GetSampleColor() {
         String leftSampleColor = QueryColorSensor(leftColorSensor, leftDistanceSensor); //assume robot-forward orientation for these

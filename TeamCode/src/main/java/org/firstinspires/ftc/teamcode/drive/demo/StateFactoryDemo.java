@@ -21,12 +21,12 @@ public class StateFactoryDemo extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Logger logger = new Logger();
+        /*Logger logger = new Logger();
         logger.Initialize(telemetry);
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
-        Arm arm = new Arm(drive, telemetry, gamepad1, () -> {});
+        Arm arm = new Arm(drive, this, () -> {});
         Intake intake = new Intake(drive, this, logger, () -> {});
 
         StateMachine stateMachine = new StateMachineBuilder()
@@ -52,6 +52,6 @@ public class StateFactoryDemo extends LinearOpMode {
             stateMachine.update();
             stateItem.setValue(stateMachine.getState());
             telemetry.update();
-        }
+        }*/
     }
 }

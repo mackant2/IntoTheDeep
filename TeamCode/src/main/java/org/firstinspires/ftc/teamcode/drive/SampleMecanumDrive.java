@@ -83,8 +83,8 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public RevBlinkinLedDriver display;
 
-    public ColorSensor leftColorSensor, rightColorSensor;
-    public DistanceSensor leftDistanceSensor, rightDistanceSensor;
+    public ColorSensor leftColorSensor, rightColorSensor, transferSensor;
+    public DistanceSensor leftDistanceSensor, rightDistanceSensor, transferDistanceSensor;
 
     private VoltageSensor batteryVoltageSensor;
 
@@ -114,8 +114,10 @@ public class SampleMecanumDrive extends MecanumDrive {
 
         leftColorSensor = hardwareMap.get(ColorSensor.class, "leftColorSensor");
         rightColorSensor = hardwareMap.get(ColorSensor.class, "rightColorSensor");
+        transferSensor = hardwareMap.get(ColorSensor.class, "transferSensor");
         leftDistanceSensor = hardwareMap.get(DistanceSensor.class, "leftColorSensor");
         rightDistanceSensor = hardwareMap.get(DistanceSensor.class, "rightColorSensor");
+        transferDistanceSensor = hardwareMap.get(DistanceSensor .class, "transferSensor");
 
         liftLimiter = hardwareMap.get(TouchSensor.class, "liftLimiter");
 
@@ -130,10 +132,10 @@ public class SampleMecanumDrive extends MecanumDrive {
         extendo.setPower(0);
         intake.setPower(0);
         //Set drivetrain to run without encoders
-        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontLeft.setDirection(Direction.REVERSE);
         backLeft.setDirection(Direction.REVERSE);
         liftLeft.setTargetPosition(0);

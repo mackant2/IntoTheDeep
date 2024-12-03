@@ -21,7 +21,10 @@ public class TurnTest extends LinearOpMode {
         waitForStart();
 
         if (isStopRequested()) return;
-
+        telemetry.addData("dhfjdbsv",1);
+        telemetry.update();
         drive.turn(Math.toRadians(ANGLE));
+        telemetry.addData("qwertyui",1);
+        telemetry.update();
     }
 }

@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.util.custom.Robot;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -20,12 +21,12 @@ public class Drivetrain {
   double rotationFactor = 0.8;
   final int SPEED = 850;
 
-  public Drivetrain(SampleMecanumDrive drive, Gamepad driverController) {
-    this.driverController = driverController;
-    rightBack = drive.backRight;
-    rightFront = drive.frontRight;
-    leftBack = drive.backLeft;
-    leftFront = drive.frontLeft;
+  public Drivetrain(Robot robot) {
+    this.driverController = robot.opMode.gamepad1;
+    rightBack = robot.drive.backRight;
+    rightFront = robot.drive.frontRight;
+    leftBack = robot.drive.backLeft;
+    leftFront = robot.drive.frontLeft;
   }
 
   public void Update() {

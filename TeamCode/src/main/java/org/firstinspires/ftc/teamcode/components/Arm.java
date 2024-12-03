@@ -7,9 +7,7 @@ import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.util.custom.DelaySystem;
+import org.firstinspires.ftc.teamcode.util.custom.Robot;
 
 public class Arm {
     public enum ArmState {
@@ -36,35 +34,31 @@ public class Arm {
     Gamepad assistantController;
     DcMotorEx liftLeft, liftRight;
     Servo leftFourBar, rightFourBar, wrist, claw;
-    final double FOURBAR_ROTATE_SPEED = 0.02;
+    final double MAX_FOURBAR_SPEED = 0.1;
     final double CLAW_OPEN = 0.8;
     final double CLAW_CLOSED = 0.3;
     public StateMachine stateMachine;
-    ArmEvent transferInitCompleted;
-
-    public interface ArmEvent {
-        void fire();
-    }
+    Robot robot;
 
     void RotateFourBar(double position) {
         leftFourBar.setPosition(position);
         rightFourBar.setPosition(position);
     }
 
-    public Arm(SampleMecanumDrive drive, Telemetry telemetry, Gamepad assistantController, ArmEvent transferInitCompleted) {
-        this.assistantController = assistantController;
-        this.telemetry = telemetry;
-        this.transferInitCompleted = transferInitCompleted;
+    public Arm(Robot robot) {
+        this.robot = robot;
+        this.assistantController = robot.opMode.gamepad2;
+        this.telemetry = robot.opMode.telemetry;
 
         //assign motors
-        liftLeft = drive.liftLeft;
-        liftRight = drive.liftRight;
+        liftLeft = robot.drive.liftLeft;
+        liftRight = robot.drive.liftRight;
         //assign servos
         //four bar - 0 is out, 1 is transfer position
-        leftFourBar = drive.leftFourBar;
-        rightFourBar = drive.rightFourBar;
-        wrist = drive.wrist;
-        claw = drive.claw;
+        leftFourBar = robot.drive.leftFourBar;
+        rightFourBar = robot.drive.rightFourBar;
+        wrist = robot.drive.wrist;
+        claw = robot.drive.claw;
 
         stateMachine = new StateMachineBuilder()
                 .state(ArmState.DriverControlled)
@@ -72,7 +66,7 @@ public class Arm {
                 .state(ArmState.InitiatingTransfer)
                 .transition(() -> liftLeft.getCurrentPosition() <= 10 && leftFourBar.getPosition() == FourBarPosition.Transfer)
                 .state(ArmState.WaitingForSample)
-                .transition(() -> stateMachine.getState() == ArmState.Extracting)
+                .transition(() -> robot.transferPlate.sampleIsPresent)
                 .state(ArmState.Extracting)
                 .transition(() -> leftFourBar.getPosition() == 1, ArmState.DriverControlled)
                 .build();
@@ -82,6 +76,7 @@ public class Arm {
         stateMachine.start();
         GoToHeight(0);
         claw.setPosition(CLAW_OPEN);
+        RotateFourBar(0.5);
     }
 
     public void ToggleClaw() {
@@ -111,20 +106,14 @@ public class Arm {
         ArmState state = (ArmState)stateMachine.getState();
 
         if (state == ArmState.DriverControlled) {
-            double power = assistantController.right_trigger - assistantController.left_trigger;
+            double power = assistantController.left_stick_y;
             if (power != 0) {
                 int pos = (int)clamp((float)(liftLeft.getCurrentPosition() + Math.floor(power * 50)), 0, 2500);
                 liftLeft.setTargetPosition(pos);
             }
 
             double leftPos = leftFourBar.getPosition();
-            double change = 0;
-            if (assistantController.dpad_left) {
-                change -= FOURBAR_ROTATE_SPEED;
-            }
-            if (assistantController.dpad_right) {
-                change += FOURBAR_ROTATE_SPEED;
-            }
+            double change = assistantController.right_stick_y * MAX_FOURBAR_SPEED;
             //Math.clamp causes crash here, so using custom method
             double leftClamped = clamp((float)(leftPos + change), (float)FourBarPosition.Transfer, 1);
             if (change != 0) {
@@ -144,7 +133,7 @@ public class Arm {
                 //reset states so transfer can happen again
                 transferInitiated = false;
                 claw.setPosition(CLAW_OPEN);
-                transferInitCompleted.fire();
+                robot.intake.state = Intake.IntakeState.Transferring;
             }
         }
         else if (state == ArmState.Extracting) {
