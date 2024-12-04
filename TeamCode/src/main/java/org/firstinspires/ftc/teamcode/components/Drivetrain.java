@@ -1,8 +1,16 @@
 package org.firstinspires.ftc.teamcode.components;
 
+
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
-
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.util.custom.Robot;
 
@@ -20,19 +28,49 @@ public class Drivetrain {
   DcMotorEx rightBack, rightFront, leftBack, leftFront;
   double rotationFactor = 0.8;
   final int SPEED = 850;
+  BNO055IMU imu;
+  Orientation angles;
+  Acceleration gravity;
+  Robot robot;
+
+
+  public void initGyro(){
+    BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+    parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+    parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+    //parameters.calibrationDataFile = "GyroCal.json"; // see the calibration sample opmode
+    parameters.loggingEnabled      = true;
+    parameters.loggingTag          = "IMU";
+    //  parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+    //
+    imu = robot.opMode.hardwareMap.get(BNO055IMU.class, "imu");
+    imu.initialize(parameters);
+
+  }
 
   public Drivetrain(Robot robot) {
+
+    this.robot = robot;
     this.driverController = robot.opMode.gamepad1;
     rightBack = robot.drive.backRight;
     rightFront = robot.drive.frontRight;
     leftBack = robot.drive.backLeft;
     leftFront = robot.drive.frontLeft;
+
+    initGyro();
   }
 
   public void Update() {
-    double x = -driverController.left_stick_x;
-    double y = driverController.left_stick_y;
+    angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+    double  theta = angles.firstAngle;
+
+    robot.opMode.telemetry.addData("angle", theta);
+
+    double x1 = -driverController.left_stick_x;
+    double y1 = driverController.left_stick_y;
     double r = driverController.right_stick_x * rotationFactor;
+    double  x = x1 * (Math.cos(Math.toRadians(theta))) - y1 * (Math.sin(Math.toRadians(theta)));
+    double y = x1 * (Math.sin(theta)) + y1 * (Math.cos(theta));
     rbVelocity = -x - y - r;
     rfVelocity = x - y - r;
     lbVelocity = x - y + r;
