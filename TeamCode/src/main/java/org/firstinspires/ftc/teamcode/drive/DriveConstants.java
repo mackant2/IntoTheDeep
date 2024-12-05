@@ -24,11 +24,6 @@ public class DriveConstants {
     public static final double TICKS_PER_REV = 435;
     public static final double MAX_RPM = 435;
 
-
-    public static final RevHubOrientationOnRobot.LogoFacingDirection LOGO_FACING_DIR = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
-    public static final RevHubOrientationOnRobot.UsbFacingDirection USB_FACING_DIR = RevHubOrientationOnRobot.UsbFacingDirection.UP;
-
-    public static final boolean RUN_USING_ENCODER = true;
     /*
      * Set RUN_USING_ENCODER to true to enable built-in hub velocity control using drive encoders.
      * Set this flag to false if drive encoders are not present and an alternative localization
@@ -37,7 +32,7 @@ public class DriveConstants {
      * If using the built-in motor velocity PID, update MOTOR_VELO_PID with the tuned coefficients
      * from DriveVelocityPIDTuner.
      */
-
+    public static final boolean RUN_USING_ENCODER = false;
     public static PIDFCoefficients MOTOR_VELO_PID = new PIDFCoefficients(0, 0, 0,
             getMotorVelocityF(MAX_RPM / 60 * TICKS_PER_REV));
 
@@ -51,15 +46,15 @@ public class DriveConstants {
      */
     public static double WHEEL_RADIUS = 1.8898; // in
     public static double GEAR_RATIO = .52; // output (wheel) speed / input (motor) speed
-    public static double TRACK_WIDTH = 9.66984252; // in
+    public static double TRACK_WIDTH = 10.43; // in
 
     /*
      * These are the feedforward parameters used to model the drive motor behavior. If you are using
-     * the built-in velocity PID, *these values are fine as     is*. However, if you do not have drive
+     * the built-in velocity PID, *these values are fine as is*. However, if you do not have drive
      * motor encoders or have elected not to use them for velocity control, these values should be
      * empirically tuned.
      */
-    public static double kV = .75 / rpmToVelocity(MAX_RPM);
+    public static double kV = .72 / rpmToVelocity(MAX_RPM);
     public static double kA = 0.004;
     public static double kStatic = 0;
 
@@ -72,17 +67,17 @@ public class DriveConstants {
      */
     public static double MAX_VEL = 20;
     public static double MAX_ACCEL = 50;
-    public static double MAX_ANG_VEL = Math.toRadians(214.17333333333333334);
-    public static double MAX_ANG_ACCEL = Math.toRadians(214.1773333333333334);
+    public static double MAX_ANG_VEL = Math.toRadians(294.5821599631399);
+    public static double MAX_ANG_ACCEL = Math.toRadians(294.5821599631399);
 
     /*
      * Adjust the orientations here to match your robot. See the FTC SDK documentation for details.
      */
-  /*  public static RevHubOrientationOnRobot.LogoFacingDirection LOGO_FACING_DIR =
-            RevHubOrientationOnRobot.LogoFacingDirection.UP;
+    public static RevHubOrientationOnRobot.LogoFacingDirection LOGO_FACING_DIR =
+            RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
     public static RevHubOrientationOnRobot.UsbFacingDirection USB_FACING_DIR =
-            RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
-*/
+            RevHubOrientationOnRobot.UsbFacingDirection.UP;
+
 
     public static double encoderTicksToInches(double ticks) {
         return WHEEL_RADIUS * 2 * Math.PI * GEAR_RATIO * ticks / TICKS_PER_REV;

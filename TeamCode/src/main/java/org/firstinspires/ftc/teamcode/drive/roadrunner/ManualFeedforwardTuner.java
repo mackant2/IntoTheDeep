@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.roadrunner;
+package org.firstinspires.ftc.teamcode.drive.opmode;
 
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ACCEL;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_VEL;
@@ -10,6 +10,7 @@ import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.drive.DriveSignal;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.kinematics.Kinematics;
 import com.acmerobotics.roadrunner.profile.MotionProfile;
@@ -22,6 +23,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 import java.util.Objects;
@@ -42,7 +44,7 @@ import java.util.Objects;
  * Pressing B/O (Xbox/PS4) will cede control back to the tuning process.
  */
 @Config
-@Autonomous(group = "roadrunner")
+@Autonomous(group = "drive")
 public class ManualFeedforwardTuner extends LinearOpMode {
     public static double DISTANCE = 72; // in
 
@@ -92,9 +94,11 @@ public class ManualFeedforwardTuner extends LinearOpMode {
         MotionProfile activeProfile = generateProfile(true);
         double profileStart = clock.seconds();
 
-
         while (!isStopRequested()) {
             telemetry.addData("mode", mode);
+            telemetry.addData("left front position", drive.frontLeft.getCurrentPosition());
+            telemetry.addData("left back position", drive.backLeft.getCurrentPosition());
+            telemetry.addData("right front position", drive.frontRight.getCurrentPosition());
 
             switch (mode) {
                 case TUNING_MODE:

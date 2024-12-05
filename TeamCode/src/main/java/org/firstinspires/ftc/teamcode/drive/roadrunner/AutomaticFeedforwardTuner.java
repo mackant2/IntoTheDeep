@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.roadrunner;
+package org.firstinspires.ftc.teamcode.drive.opmode;
 
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_RPM;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.RUN_USING_ENCODER;
@@ -33,7 +33,7 @@ import java.util.List;
  *      regression.
  */
 @Config
-@Autonomous(name = "[ROADRUNNER] AutomaticFeedForwardTuner", group = "roadrunner")
+@Autonomous(group = "drive")
 public class AutomaticFeedforwardTuner extends LinearOpMode {
     public static double MAX_POWER = 0.7;
     public static double DISTANCE = 100; // in

@@ -62,15 +62,15 @@ public class Arm {
         claw = robot.drive.claw;
 
         stateMachine = new StateMachineBuilder()
-                .state(ArmState.DriverControlled)
-                .transition(() -> stateMachine.getState() == ArmState.InitiatingTransfer)
-                .state(ArmState.InitiatingTransfer)
-                .transition(() -> liftLeft.getCurrentPosition() <= 10 && leftFourBar.getPosition() == FourBarPosition.Transfer)
-                .state(ArmState.WaitingForSample)
-                .transition(() -> robot.transferPlate.sampleIsPresent)
-                .state(ArmState.Extracting)
-                .transition(() -> leftFourBar.getPosition() == 1, ArmState.DriverControlled)
-                .build();
+            .state(ArmState.DriverControlled)
+            .transition(() -> stateMachine.getState() == ArmState.InitiatingTransfer)
+            .state(ArmState.InitiatingTransfer)
+            .transition(() -> liftLeft.getCurrentPosition() <= 10 && leftFourBar.getPosition() == FourBarPosition.Transfer)
+            .state(ArmState.WaitingForSample)
+            .transition(() -> robot.transferPlate.sampleIsPresent)
+            .state(ArmState.Extracting)
+            .transition(() -> leftFourBar.getPosition() == 1, ArmState.DriverControlled)
+            .build();
     }
 
     public void Initialize() {
@@ -120,6 +120,8 @@ public class Arm {
             if (change != 0) {
                 RotateFourBar(leftClamped);
             }
+
+            wrist.setPosition(clamp((float)((assistantController.left_trigger - assistantController.right_trigger) * 0.01), 0, 1));
         }
         else if (state == ArmState.InitiatingTransfer) {
             if (!transferInitiated) {

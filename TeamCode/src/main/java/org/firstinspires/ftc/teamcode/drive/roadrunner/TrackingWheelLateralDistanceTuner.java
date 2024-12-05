@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.roadrunner;
+package org.firstinspires.ftc.teamcode.drive.opmode;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -62,7 +62,7 @@ import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
  * precision. The heading should still line up.
  */
 @Config
-@TeleOp(group = "roadrunner")
+@TeleOp(group = "drive")
 public class TrackingWheelLateralDistanceTuner extends LinearOpMode {
     public static int NUM_TURNS = 10;
 

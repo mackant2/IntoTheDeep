@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.roadrunner;
+package org.firstinspires.ftc.teamcode.drive.opmode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -35,7 +35,7 @@ import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
  * satisfactory result is produced.
  */
 @Config
-@Autonomous(group = "roadrunner")
+@Autonomous(group="drive")
 public class TrackingWheelForwardOffsetTuner extends LinearOpMode {
     public static double ANGLE = 180; // deg
     public static int NUM_TRIALS = 5;

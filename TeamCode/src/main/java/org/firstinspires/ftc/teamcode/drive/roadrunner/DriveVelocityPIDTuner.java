@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.roadrunner;
+package org.firstinspires.ftc.teamcode.drive.opmode;
 
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ACCEL;
 import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_VEL;
@@ -49,7 +49,7 @@ import java.util.List;
  * Pressing B/O (Xbox/PS4) will cede control back to the tuning process.
  */
 @Config
-@Autonomous(name = "[ROADRUNNER] DriveVelocityPIDTuner", group = "roadrunner")
+@Autonomous(group = "drive")
 public class DriveVelocityPIDTuner extends LinearOpMode {
     public static double DISTANCE = 72; // in
 

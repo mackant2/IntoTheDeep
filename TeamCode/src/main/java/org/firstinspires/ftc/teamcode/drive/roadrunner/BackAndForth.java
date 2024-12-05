@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive.roadrunner;
+package org.firstinspires.ftc.teamcode.drive.opmode;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
@@ -25,7 +25,7 @@ import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
  * is recommended that you use the FollowerPIDTuner opmode for further fine tuning.
  */
 @Config
-@Autonomous(name = "[ROADRUNNER] BackAndForth", group = "roadrunner")
+@Autonomous(group = "drive")
 public class BackAndForth extends LinearOpMode {
 
     public static double DISTANCE = 50;
@@ -43,17 +43,10 @@ public class BackAndForth extends LinearOpMode {
                 .build();
 
         waitForStart();
-        telemetry.addData("qqqwdfdfgh",4);
-        telemetry.update();
+
         while (opModeIsActive() && !isStopRequested()) {
-            telemetry.addData("shgrh",3);
-            telemetry.update();
             drive.followTrajectory(trajectoryForward);
-            telemetry.addData("trgdfvuhcjnfvk",2);
-            telemetry.update();
             drive.followTrajectory(trajectoryBackward);
-            telemetry.addData("ghfjed",1);
-            telemetry.update();
         }
     }
 }

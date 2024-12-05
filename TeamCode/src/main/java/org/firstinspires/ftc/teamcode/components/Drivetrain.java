@@ -32,20 +32,15 @@ public class Drivetrain {
   Orientation angles;
   Acceleration gravity;
   Robot robot;
+  float degree_Zero = 0;
 
 
-  public void initGyro(){
-    BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-    parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
-    parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-    //parameters.calibrationDataFile = "GyroCal.json"; // see the calibration sample opmode
-    parameters.loggingEnabled      = true;
-    parameters.loggingTag          = "IMU";
-    //  parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-    //
-    imu = robot.opMode.hardwareMap.get(BNO055IMU.class, "imu");
-    imu.initialize(parameters);
+  void initGyro(){
+    imu = robot.drive.imu;
+  }
 
+  public void resetOrientation() {
+      degree_Zero = angles.firstAngle;
   }
 
   public Drivetrain(Robot robot) {
@@ -62,19 +57,25 @@ public class Drivetrain {
 
   public void Update() {
     angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-    double  theta = angles.firstAngle;
+    double  theta = angles.firstAngle - degree_Zero;
+    if (theta > 180) {
+      theta -= 360;
+    }
+    else if (theta < -180){
+      theta += 360;
+    }
 
     robot.opMode.telemetry.addData("angle", theta);
 
     double x1 = -driverController.left_stick_x;
     double y1 = driverController.left_stick_y;
     double r = driverController.right_stick_x * rotationFactor;
-    double  x = x1 * (Math.cos(Math.toRadians(theta))) - y1 * (Math.sin(Math.toRadians(theta)));
-    double y = x1 * (Math.sin(theta)) + y1 * (Math.cos(theta));
+    double  x = x1 * (Math.cos(Math.toRadians(theta))) + y1 * (Math.sin(Math.toRadians(theta)));
+    double y = x1 * ( - Math.sin(Math.toRadians(theta))) + y1 * (Math.cos(Math.toRadians(theta)));
     rbVelocity = -x - y - r;
     rfVelocity = x - y - r;
     lbVelocity = x - y + r;
-    lfVelocity = -x - y + r ;
+    lfVelocity = -x - y + r;
     velocities.add(rbVelocity); //right back
     velocities.add(rfVelocity); //right front
     velocities.add(lbVelocity); //left back

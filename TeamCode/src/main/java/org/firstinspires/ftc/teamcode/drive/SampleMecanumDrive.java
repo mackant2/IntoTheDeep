@@ -1,19 +1,5 @@
 package org.firstinspires.ftc.teamcode.drive;
 
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ACCEL;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ANG_ACCEL;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ANG_VEL;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_VEL;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MOTOR_VELO_PID;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.RUN_USING_ENCODER;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.TRACK_WIDTH;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.encoderTicksToInches;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kA;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kStatic;
-import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
-
-import android.text.method.Touch;
-
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -31,21 +17,24 @@ import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple.Direction;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
-import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceBuilder;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequenceRunner;
@@ -54,6 +43,18 @@ import org.firstinspires.ftc.teamcode.util.LynxModuleUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ACCEL;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ANG_ACCEL;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_ANG_VEL;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MAX_VEL;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.MOTOR_VELO_PID;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.RUN_USING_ENCODER;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.TRACK_WIDTH;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.encoderTicksToInches;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kA;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kStatic;
+import static org.firstinspires.ftc.teamcode.drive.DriveConstants.kV;
 
 /*
  * Simple mecanum drive hardware implementation for REV hardware.
@@ -77,7 +78,7 @@ public class SampleMecanumDrive extends MecanumDrive {
     private TrajectoryFollower follower;
 
     public DcMotorEx frontLeft, frontRight, backLeft, backRight, liftLeft, liftRight, extendo, intake;
-    private final List<DcMotorEx> motors;
+    private List<DcMotorEx> motors;
 
     public Servo claw, leftFourBar, rightFourBar, wrist, flipdown, gate;
 
@@ -86,79 +87,19 @@ public class SampleMecanumDrive extends MecanumDrive {
     public ColorSensor leftColorSensor, rightColorSensor, transferSensor;
     public DistanceSensor leftDistanceSensor, rightDistanceSensor, transferDistanceSensor;
 
+    public TouchSensor liftLimiter;
+
+    public BNO055IMU imu;
     private VoltageSensor batteryVoltageSensor;
 
     private List<Integer> lastEncPositions = new ArrayList<>();
     private List<Integer> lastEncVels = new ArrayList<>();
 
-    public TouchSensor liftLimiter;
-
     public SampleMecanumDrive(HardwareMap hardwareMap) {
         super(kV, kA, kStatic, TRACK_WIDTH, TRACK_WIDTH, LATERAL_MULTIPLIER);
 
-        frontLeft = hardwareMap.get(DcMotorEx.class, "left_front");
-        frontRight = hardwareMap.get(DcMotorEx.class, "right_front");
-        backLeft = hardwareMap.get(DcMotorEx.class, "left_back");
-        backRight = hardwareMap.get(DcMotorEx.class, "right_back");
-        liftLeft = hardwareMap.get(DcMotorEx.class, "liftLeft");
-        liftRight = hardwareMap.get(DcMotorEx.class, "liftRight");
-        extendo = hardwareMap.get(DcMotorEx.class, "Extendo");
-        intake = hardwareMap.get(DcMotorEx.class, "Intake");
-
-        claw = hardwareMap.get(Servo.class, "claw");
-        leftFourBar = hardwareMap.get(Servo.class, "leftFourBar");
-        rightFourBar = hardwareMap.get(Servo.class, "rightFourBar");
-        wrist = hardwareMap.get(Servo.class, "wrist");
-        flipdown = hardwareMap.get(Servo.class, "flipdown");
-        gate = hardwareMap.get(Servo.class, "gate");
-
-        leftColorSensor = hardwareMap.get(ColorSensor.class, "leftColorSensor");
-        rightColorSensor = hardwareMap.get(ColorSensor.class, "rightColorSensor");
-        transferSensor = hardwareMap.get(ColorSensor.class, "transferSensor");
-        leftDistanceSensor = hardwareMap.get(DistanceSensor.class, "leftColorSensor");
-        rightDistanceSensor = hardwareMap.get(DistanceSensor.class, "rightColorSensor");
-        transferDistanceSensor = hardwareMap.get(DistanceSensor .class, "transferSensor");
-
-        liftLimiter = hardwareMap.get(TouchSensor.class, "liftLimiter");
-
-        display = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
-
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
-        liftLeft.setPower(0);
-        liftRight.setPower(0);
-        extendo.setPower(0);
-        intake.setPower(0);
-        //Set drivetrain to run without encoders
-        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontLeft.setDirection(Direction.REVERSE);
-        backLeft.setDirection(Direction.REVERSE);
-        liftLeft.setTargetPosition(0);
-        liftRight.setTargetPosition(0);
-        extendo.setTargetPosition(0);
-        liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        extendo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftFourBar.setDirection(Servo.Direction.FORWARD);
-        rightFourBar.setDirection(Servo.Direction.REVERSE);
-        extendo.setDirection(Direction.REVERSE);
-
-        extendo.setVelocity(1000);
-        liftLeft.setVelocity(1000);
-
-        extendo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
         follower = new HolonomicPIDVAFollower(TRANSLATIONAL_PID, TRANSLATIONAL_PID, HEADING_PID,
                 new Pose2d(0.5, 0.5, Math.toRadians(5.0)), 0.5);
-
 
         LynxModuleUtil.ensureMinimumFirmwareVersion(hardwareMap);
 
@@ -167,6 +108,25 @@ public class SampleMecanumDrive extends MecanumDrive {
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
+
+        // TODO: adjust the names of the following hardware devices to match your configuration
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        //parameters.calibrationDataFile = "GyroCal.json"; // see the calibration sample opmode
+        parameters.loggingEnabled      = true;
+        parameters.loggingTag          = "IMU";
+        imu.initialize(parameters);
+
+        frontLeft = hardwareMap.get(DcMotorEx.class, "left_front");
+        backLeft = hardwareMap.get(DcMotorEx.class, "left_back");
+        backRight = hardwareMap.get(DcMotorEx.class, "right_back");
+        frontRight = hardwareMap.get(DcMotorEx.class, "right_front");
+        liftLeft = hardwareMap.get(DcMotorEx.class, "liftLeft");
+        liftRight = hardwareMap.get(DcMotorEx.class, "liftRight");
+        extendo = hardwareMap.get(DcMotorEx.class, "Extendo");
+        intake = hardwareMap.get(DcMotorEx.class, "Intake");
 
         motors = Arrays.asList(frontLeft, backLeft, backRight, frontRight);
 
@@ -195,6 +155,48 @@ public class SampleMecanumDrive extends MecanumDrive {
                 follower, HEADING_PID, batteryVoltageSensor,
                 lastEncPositions, lastEncVels, lastTrackingEncPositions, lastTrackingEncVels
         );
+
+        claw = hardwareMap.get(Servo.class, "claw");
+        leftFourBar = hardwareMap.get(Servo.class, "leftFourBar");
+        rightFourBar = hardwareMap.get(Servo.class, "rightFourBar");
+        wrist = hardwareMap.get(Servo.class, "wrist");
+        flipdown = hardwareMap.get(Servo.class, "flipdown");
+        gate = hardwareMap.get(Servo.class, "gate");
+
+        leftColorSensor = hardwareMap.get(ColorSensor.class, "leftColorSensor");
+        rightColorSensor = hardwareMap.get(ColorSensor.class, "rightColorSensor");
+        transferSensor = hardwareMap.get(ColorSensor.class, "transferSensor");
+        leftDistanceSensor = hardwareMap.get(DistanceSensor.class, "leftColorSensor");
+        rightDistanceSensor = hardwareMap.get(DistanceSensor.class, "rightColorSensor");
+        transferDistanceSensor = hardwareMap.get(DistanceSensor .class, "transferSensor");
+
+        liftLimiter = hardwareMap.get(TouchSensor.class, "liftLimiter");
+
+        display = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+
+        frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftLeft.setTargetPosition(0);
+        liftRight.setTargetPosition(0);
+        extendo.setTargetPosition(0);
+        liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        extendo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftFourBar.setDirection(Servo.Direction.FORWARD);
+        rightFourBar.setDirection(Servo.Direction.REVERSE);
+        extendo.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        extendo.setVelocity(1000);
+        liftLeft.setVelocity(1000);
+
+        extendo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
     public TrajectoryBuilder trajectoryBuilder(Pose2d startPose) {
@@ -352,11 +354,13 @@ public class SampleMecanumDrive extends MecanumDrive {
     @Override
     public double getRawExternalHeading() {
         return 0;
+       // return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
     }
 
     @Override
     public Double getExternalHeadingVelocity() {
         return 0.0;
+        //return (double) imu.getRobotAngularVelocity(AngleUnit.RADIANS).zRotationRate;
     }
 
     public static TrajectoryVelocityConstraint getVelocityConstraint(double maxVel, double maxAngularVel, double trackWidth) {

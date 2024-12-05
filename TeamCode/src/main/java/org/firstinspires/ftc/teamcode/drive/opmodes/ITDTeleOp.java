@@ -34,6 +34,7 @@ public class ITDTeleOp extends LinearOpMode {
         pressEventSystem.AddListener(assistantController, "a",robot.arm::ToggleClaw);
         pressEventSystem.AddListener(driverController, "right_bumper", robot.intake::ToggleAutomatedIntake);
         pressEventSystem.AddListener(driverController, "left_bumper", () -> robot.arm.stateMachine.setState(Arm.ArmState.InitiatingTransfer));
+        pressEventSystem.AddListener(driverController, "y", robot.drivetrain::resetOrientation);
         while (!isStopRequested()) {
             //Update utils
             pressEventSystem.Update();

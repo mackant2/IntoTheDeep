@@ -22,7 +22,7 @@ public class Robot {
         //initialize four bar
         arm.Initialize();
         //flip intake up and bring in
-        intake.Initialize();
+        //intake.Initialize();
     }
 
     public Robot(LinearOpMode opMode, SampleMecanumDrive drive) {
@@ -41,7 +41,7 @@ public class Robot {
     public void Update() {
         arm.Update();
         drivetrain.Update();
-        intake.Update();
+        //intake.Update();
         transferPlate.Update();
     }
 }
