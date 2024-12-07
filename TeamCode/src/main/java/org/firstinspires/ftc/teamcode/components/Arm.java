@@ -47,7 +47,7 @@ public class Arm {
     DcMotorEx liftLeft, liftRight;
     Servo leftFourBar, rightFourBar, wrist, claw;
     final double MAX_FOURBAR_SPEED = 0.02;
-    final float MAX_HEIGHT = 3600;
+    final float MAX_HEIGHT = Height.UPPER_BAR;
     final int LIFT_SPEED = 200;
     public StateMachine stateMachine;
     Robot robot;

@@ -25,10 +25,8 @@ public class Drivetrain {
   double lfVelocity;
   DcMotorEx rightBack, rightFront, leftBack, leftFront;
   double rotationFactor = 0.8;
-  final int SPEED = 850;
   IMU imu;
   Orientation angles;
-  Acceleration gravity;
   Robot robot;
   float degree_Zero = 0;
   double SPEED_MULT = 1.5;
@@ -79,18 +77,14 @@ public class Drivetrain {
     velocities.add(rfVelocity * SPEED_MULT); //right front
     velocities.add(lbVelocity * SPEED_MULT); //left back
     velocities.add(lfVelocity * SPEED_MULT); //left front
-    double absMax = Math.abs(Collections.max(velocities));
-    if (absMax > 1){
-      rbVelocity /= absMax;
-      rfVelocity /= absMax;
-      lbVelocity /= absMax;
-      lfVelocity /= absMax;
+    double fastestMotorSpeed = Math.abs(Collections.max(velocities));
+    velocities.clear();
+    if (fastestMotorSpeed > SPEED_MULT) {
+      rbVelocity /= fastestMotorSpeed;
+      rfVelocity /= fastestMotorSpeed;
+      lbVelocity /= fastestMotorSpeed;
+      lfVelocity /= fastestMotorSpeed;
     }
-    /*rightBack.setVelocity(rbVelocity * SPEED);
-    rightFront.setVelocity(rfVelocity * SPEED);
-    leftBack.setVelocity(lbVelocity * SPEED);
-    leftFront.setVelocity(lfVelocity * SPEED);
-    velocities.clear();*/
     rightBack.setPower(rbVelocity);
     rightFront.setPower(rfVelocity);
     leftBack.setPower(lbVelocity);
