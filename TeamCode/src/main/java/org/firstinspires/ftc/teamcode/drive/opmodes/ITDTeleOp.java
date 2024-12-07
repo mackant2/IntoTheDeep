@@ -32,7 +32,7 @@ public class ITDTeleOp extends LinearOpMode {
         robot = new Robot(this, drive);
 
         pressEventSystem.AddListener(assistantController, "a",robot.arm::ToggleClaw);
-        pressEventSystem.AddListener(assistantController, "x", () -> robot.arm.GoToHeight(Arm.Height.LOWER_BUCKET));
+        pressEventSystem.AddListener(assistantController, "x", () -> robot.arm.GoToHeight(Arm.Height.UPPER_BUCKET));
         pressEventSystem.AddListener(assistantController, "b", () -> robot.arm.GoToHeight(Arm.Height.UPPER_BAR));
         pressEventSystem.AddListener(assistantController, "y", robot.arm::PrepareToGrabSpecimen);
         pressEventSystem.AddListener(assistantController, "dpad_right", robot.arm::PrepareToDepositSpecimen);

@@ -26,7 +26,8 @@ public class Intake {
         DriverControlled,
         RunningAutomatedIntake,
         Transferring,
-        Rejecting
+        Rejecting,
+        ResetTransfer
     }
     static class GatePosition {
         public static final int OPEN = 1;
@@ -50,6 +51,9 @@ public class Intake {
     float[] hsvValues = new float[3];
     Gamepad driverController;
     StateMachine stateMachine;
+    float transferStartTime;
+    boolean transferStarted = false;
+    boolean transferResetStarted = false;
 
     public Intake(SampleMecanumDrive drive, Robot robot) {
         this.robot = robot;
@@ -79,9 +83,7 @@ public class Intake {
     }
 
     public void ToggleAutomatedIntake() {
-        if (state != IntakeState.RunningAutomatedIntake) {
-            state = state == IntakeState.DriverControlled ? IntakeState.RunningAutomatedIntake : IntakeState.DriverControlled;
-        }
+        state = state == IntakeState.DriverControlled ? IntakeState.RunningAutomatedIntake : IntakeState.DriverControlled;
     }
 
     public void ToggleRejection() {
@@ -95,7 +97,7 @@ public class Intake {
     public void Update() {
         if (state == IntakeState.RunningAutomatedIntake) {
             gate.setPosition(GatePosition.CLOSED);
-            if (flipdown.getPosition() != 1 || intake.getPower() != -1) {
+            if (flipdown.getPosition() != 1 || intake.getPower() != 1) {
                 flipdown.setPosition(1);
                 intake.setPower(-1);
             }
@@ -106,12 +108,20 @@ public class Intake {
             }
         }
         else if (state == IntakeState.Transferring) {
-            flipdown.setPosition(0);
-            gate.setPosition(GatePosition.OPEN);
-            intake.setPower(-1);
+            if (!transferStarted) {
+                transferStarted = true;
+                transferStartTime = System.currentTimeMillis();
+                gate.setPosition(GatePosition.OPEN);
+                intake.setPower(-1);
+            }
 
             if (robot.transferPlate.sampleIsPresent) {
+                transferStarted = false;
                 state = IntakeState.DriverControlled;
+            }
+            else if (System.currentTimeMillis() - transferStartTime > 1500) {
+                transferStarted = false;
+                state = IntakeState.ResetTransfer;
             }
         }
         else if (state == IntakeState.DriverControlled) {
@@ -130,6 +140,21 @@ public class Intake {
             gate.setPosition(GatePosition.OPEN);
             intake.setPower(1);
             flipdown.setPosition(1);
+        }
+        else if (state == IntakeState.ResetTransfer) {
+            if (!transferResetStarted) {
+                transferResetStarted = true;
+                intake.setPower(1);
+                delaySystem.CreateDelay(1000, () -> {
+                   transferResetStarted = false;
+                   state = IntakeState.Transferring;
+                });
+            }
+        }
+
+        //Hard stop so intake doesn't flip down while in
+        if (extender.getCurrentPosition() < 300) {
+            flipdown.setPosition(0);
         }
 
         delaySystem.Update();

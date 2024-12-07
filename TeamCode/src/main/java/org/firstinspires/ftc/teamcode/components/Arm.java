@@ -7,6 +7,7 @@ import com.sfdev.assembly.state.StateMachine;
 import com.sfdev.assembly.state.StateMachineBuilder;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.util.custom.Robot;
 
 public class Arm {
@@ -25,12 +26,12 @@ public class Arm {
         public static final double Transfer = .4;
         public static final double Extraction = 0.16;
         public static final double WallPickup = 0.53;
-        public static final double SpecimenHang = 0.92;
+        public static final double SpecimenHang = 1;
         public static final double SampleDrop = 0.53;
     }
     public static class Height {
         public static final int LOWER_BUCKET = 2400;
-        public static final int UPPER_BUCKET = 3500;
+        public static final int UPPER_BUCKET = 3600;
         public static final int LOWER_BAR = 1500;
         public static final int UPPER_BAR = 2500;
         public static final int DOWN = 0;
@@ -39,7 +40,7 @@ public class Arm {
     }
     public static class ClawPosition {
         public static final double Open = 0.8;
-        public static final double Closed = 0.4;
+        public static final double Closed = 0.35;
     }
     Telemetry telemetry;
     Gamepad assistantController;
@@ -179,6 +180,7 @@ public class Arm {
         }
 
         telemetry.addData("Arm State", state);
+        robot.opMode.telemetry.addData("Arm Voltage (MILLIAMPS)", liftLeft.getCurrent(CurrentUnit.MILLIAMPS));
         telemetry.addData("Lift Position", liftLeft.getCurrentPosition());
         telemetry.addData("Lift Target", liftLeft.getTargetPosition());
         telemetry.addData("Four Bar Position", leftFourBar.getPosition());
