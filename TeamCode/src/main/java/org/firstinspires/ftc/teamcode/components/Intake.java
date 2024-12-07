@@ -12,6 +12,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.sfdev.assembly.state.StateMachineBuilder;
 import com.sfdev.assembly.state.StateMachine;
 
+import org.apache.commons.math3.analysis.integration.IterativeLegendreGaussIntegrator;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.util.custom.DelaySystem;
@@ -23,7 +25,8 @@ public class Intake {
     public enum IntakeState {
         DriverControlled,
         RunningAutomatedIntake,
-        Transferring
+        Transferring,
+        Rejecting
     }
     static class GatePosition {
         public static final int OPEN = 1;
@@ -69,10 +72,9 @@ public class Intake {
 
     public void Initialize() {
         //Move intake to flipped up and in
-        extender.setTargetPosition(500);
         flipdown.setPosition(0);
         delaySystem.CreateDelay(500, () -> extender.setTargetPosition(ExtenderPosition.IN));
-        //gate.setPosition(GatePosition.CLOSED);
+        gate.setPosition(GatePosition.CLOSED);
         extender.setTargetPosition(ExtenderPosition.IN);
     }
 
@@ -82,13 +84,18 @@ public class Intake {
         }
     }
 
+    public void ToggleRejection() {
+        state = state == IntakeState.Rejecting ? IntakeState.DriverControlled : IntakeState.Rejecting;
+    }
+
     float clamp(float num, float min, float max) {
         return Math.max(min, Math.min(num, max));
     }
 
     public void Update() {
         if (state == IntakeState.RunningAutomatedIntake) {
-            if (flipdown.getPosition() != 1) {
+            gate.setPosition(GatePosition.CLOSED);
+            if (flipdown.getPosition() != 1 || intake.getPower() != -1) {
                 flipdown.setPosition(1);
                 intake.setPower(-1);
             }
@@ -107,7 +114,7 @@ public class Intake {
                 state = IntakeState.DriverControlled;
             }
         }
-        else {
+        else if (state == IntakeState.DriverControlled) {
             double power = driverController.right_trigger - driverController.left_trigger;
             if (power != 0) {
                 int currentPosition = extender.getCurrentPosition();
@@ -115,27 +122,30 @@ public class Intake {
                 extender.setTargetPosition((int)clamp(target, ExtenderPosition.IN, ExtenderPosition.OUT));
             }
 
+            gate.setPosition(GatePosition.CLOSED);
             intake.setPower(0);
             flipdown.setPosition(0);
         }
-
-        //Hard stop so intake doesn't flip down while in
-        if (extender.getCurrentPosition() < 300) {
-            flipdown.setPosition(0);
+        else if (state == IntakeState.Rejecting) {
+            gate.setPosition(GatePosition.OPEN);
+            intake.setPower(1);
+            flipdown.setPosition(1);
         }
 
         delaySystem.Update();
 
         robot.opMode.telemetry.addData("Intake State", state);
-        robot.opMode.telemetry.addData("Intake Position", extender.getCurrentPosition());
-        robot.opMode.telemetry.addData("Intake Target Position", extender.getTargetPosition());
+        robot.opMode.telemetry.addData("Extender Voltage (MILLIAMPS)", extender.getCurrent(CurrentUnit.MILLIAMPS));
+        robot.opMode.telemetry.addData("Extender Velocity", extender.getVelocity());
+        robot.opMode.telemetry.addData("Extender Position", extender.getCurrentPosition());
+        robot.opMode.telemetry.addData("Extender Target Position", extender.getTargetPosition());
     }
 
     String GetSampleColor() {
         String leftSampleColor = QueryColorSensor(leftColorSensor, leftDistanceSensor); //assume robot-forward orientation for these
         String rightSampleColor = QueryColorSensor(rightColorSensor, rightDistanceSensor);
         //If either color sensor returns white (no sample) then set to white, otherwise we know that the intake has a sample
-        String sampleColor = Objects.equals(leftSampleColor, "WHITE") || Objects.equals(rightSampleColor, "WHITE") ? "WHITE" : leftSampleColor;
+        String sampleColor = /*Objects.equals(leftSampleColor, "WHITE")*/ false || Objects.equals(rightSampleColor, "WHITE") ? "WHITE" : rightSampleColor;
         display.setPattern(BlinkinPattern.valueOf(sampleColor));
         return sampleColor;
     }

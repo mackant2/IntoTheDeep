@@ -5,27 +5,40 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.util.custom.ParsedHardwareMap;
 
 
 @TeleOp (group = "tuning", name = "[TUNING] Intake")
 public class Intake extends LinearOpMode {
-
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        DcMotorEx extender = drive.extendo;
-        Servo flipdown = drive.flipdown;
+        ParsedHardwareMap parsedHardwareMap = new ParsedHardwareMap(hardwareMap);
+        DcMotorEx extender = parsedHardwareMap.extender;
+        Servo flipDown = parsedHardwareMap.flipDown;
+        TouchSensor limiter = parsedHardwareMap.extenderLimiter;
 
-        String state = "tuning";
+        String state = "extending";
 
-        flipdown.setPosition(0);
-        waitForStart();
+        while (!isStarted()) {
+            telemetry.addData("limit touched", limiter.isPressed());
+            telemetry.update();
+        }
         while (!isStopRequested()) {
-            if (state.equals("tuning")) {
-                telemetry.addLine("Move four bar in and press A/X when done");
+            flipDown.setPosition(gamepad1.y ? 1 : 0);
+            parsedHardwareMap.gate.setPosition(gamepad1.b ? 0 : 1);
+            extender.setTargetPosition(extender.getCurrentPosition() - Math.round(gamepad1.right_trigger * 10));
+            if (state.equals("extending")) {
+                telemetry.addLine("Extend intake with right trigger and press A/X when done");
+                extender.setTargetPosition(extender.getCurrentPosition() + Math.round(gamepad1.right_trigger * 10));
                 if (gamepad1.a) {
+                    state = "tuning";
+                }
+            }
+            else if (state.equals("tuning")) {
+                extender.setTargetPosition(extender.getCurrentPosition() - 100);
+                if (limiter.isPressed()) {
                     state = "resetting";
                 }
             }
@@ -39,6 +52,8 @@ public class Intake extends LinearOpMode {
                 }
                 telemetry.addLine("Resetting encoder...");
             }
+            telemetry.addData("FlipDown Position", flipDown.getPosition());
+            telemetry.addData("Gate Position", parsedHardwareMap.gate.getPosition());
             telemetry.update();
         }
     }

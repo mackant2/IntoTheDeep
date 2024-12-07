@@ -8,10 +8,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import com.qualcomm.robotcore.hardware.IMU;
+
 import org.firstinspires.ftc.teamcode.util.custom.Robot;
 
 import java.util.Collections;
@@ -28,11 +26,12 @@ public class Drivetrain {
   DcMotorEx rightBack, rightFront, leftBack, leftFront;
   double rotationFactor = 0.8;
   final int SPEED = 850;
-  BNO055IMU imu;
+  IMU imu;
   Orientation angles;
   Acceleration gravity;
   Robot robot;
   float degree_Zero = 0;
+  double SPEED_MULT = 1.5;
 
 
   void initGyro(){
@@ -56,7 +55,7 @@ public class Drivetrain {
   }
 
   public void Update() {
-    angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+    angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
     double  theta = angles.firstAngle - degree_Zero;
     if (theta > 180) {
       theta -= 360;
@@ -76,10 +75,10 @@ public class Drivetrain {
     rfVelocity = x - y - r;
     lbVelocity = x - y + r;
     lfVelocity = -x - y + r;
-    velocities.add(rbVelocity); //right back
-    velocities.add(rfVelocity); //right front
-    velocities.add(lbVelocity); //left back
-    velocities.add(lfVelocity); //left front
+    velocities.add(rbVelocity * SPEED_MULT); //right back
+    velocities.add(rfVelocity * SPEED_MULT); //right front
+    velocities.add(lbVelocity * SPEED_MULT); //left back
+    velocities.add(lfVelocity * SPEED_MULT); //left front
     double absMax = Math.abs(Collections.max(velocities));
     if (absMax > 1){
       rbVelocity /= absMax;

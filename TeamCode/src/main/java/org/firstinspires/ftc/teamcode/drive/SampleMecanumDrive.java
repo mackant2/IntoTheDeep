@@ -17,7 +17,6 @@ import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -89,7 +88,7 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     public TouchSensor liftLimiter;
 
-    public BNO055IMU imu;
+    public IMU imu;
     private VoltageSensor batteryVoltageSensor;
 
     private List<Integer> lastEncPositions = new ArrayList<>();
@@ -110,13 +109,9 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         // TODO: adjust the names of the following hardware devices to match your configuration
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        //parameters.calibrationDataFile = "GyroCal.json"; // see the calibration sample opmode
-        parameters.loggingEnabled      = true;
-        parameters.loggingTag          = "IMU";
+        imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                DriveConstants.LOGO_FACING_DIR, DriveConstants.USB_FACING_DIR));
         imu.initialize(parameters);
 
         frontLeft = hardwareMap.get(DcMotorEx.class, "left_front");
@@ -180,19 +175,20 @@ public class SampleMecanumDrive extends MecanumDrive {
         backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        liftLeft.setTargetPosition(0);
-        liftRight.setTargetPosition(0);
-        extendo.setTargetPosition(0);
+        extendo.setTargetPosition(extendo.getCurrentPosition());
+        liftLeft.setTargetPosition(liftLeft.getCurrentPosition());
+        liftRight.setTargetPosition(liftRight.getTargetPosition());
         liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         extendo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftFourBar.setDirection(Servo.Direction.FORWARD);
-        rightFourBar.setDirection(Servo.Direction.REVERSE);
-        extendo.setDirection(DcMotorSimple.Direction.REVERSE);
 
         extendo.setVelocity(1000);
         liftLeft.setVelocity(1000);
+
+        leftFourBar.setDirection(Servo.Direction.FORWARD);
+        rightFourBar.setDirection(Servo.Direction.REVERSE);
+        extendo.setDirection(DcMotorSimple.Direction.REVERSE);
 
         extendo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
