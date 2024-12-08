@@ -63,19 +63,18 @@ public class ParsedHardwareMap {
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Configure Lift
-        liftLeft.setTargetPosition(0);
-        liftRight.setTargetPosition(0);
+        liftLeft.setTargetPosition(liftLeft.getCurrentPosition());
         liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         leftFourBar.setDirection(Servo.Direction.FORWARD);
         rightFourBar.setDirection(Servo.Direction.REVERSE);
-        liftLeft.setVelocity(1000);
         liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        liftLeft.setVelocity(1000);
 
         //Configure Intake
         intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        extender.setTargetPosition(0);
+        extender.setTargetPosition(extender.getCurrentPosition());
         extender.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         extender.setDirection(DcMotorSimple.Direction.REVERSE);
         extender.setVelocity(1000);

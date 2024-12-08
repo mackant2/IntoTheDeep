@@ -180,6 +180,7 @@ public class SampleMecanumDrive extends MecanumDrive {
         liftRight.setTargetPosition(liftRight.getTargetPosition());
         liftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         liftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         extendo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 

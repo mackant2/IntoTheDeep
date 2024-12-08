@@ -31,11 +31,6 @@ public class Drivetrain {
   float degree_Zero = 0;
   double SPEED_MULT = 1.5;
 
-
-  void initGyro(){
-    imu = robot.drive.imu;
-  }
-
   public void resetOrientation() {
       degree_Zero = angles.firstAngle;
   }
@@ -49,7 +44,7 @@ public class Drivetrain {
     leftBack = robot.drive.backLeft;
     leftFront = robot.drive.frontLeft;
 
-    initGyro();
+    imu = robot.drive.imu;
   }
 
   public void Update() {
@@ -64,15 +59,15 @@ public class Drivetrain {
 
     robot.opMode.telemetry.addData("angle", theta);
 
-    double x1 = -driverController.left_stick_x;
+    double x1 = driverController.left_stick_x;
     double y1 = driverController.left_stick_y;
     double r = driverController.right_stick_x * rotationFactor;
-    double  x = x1 * (Math.cos(Math.toRadians(theta))) + y1 * (Math.sin(Math.toRadians(theta)));
-    double y = x1 * ( - Math.sin(Math.toRadians(theta))) + y1 * (Math.cos(Math.toRadians(theta)));
-    rbVelocity = -x - y - r;
-    rfVelocity = x - y - r;
-    lbVelocity = x - y + r;
-    lfVelocity = -x - y + r;
+    double  x = x1 * (Math.cos(Math.toRadians(theta))) - y1 * (Math.sin(Math.toRadians(theta)));
+    double y = x1 * (Math.sin(Math.toRadians(theta))) + y1 * (Math.cos(Math.toRadians(theta)));
+    rbVelocity = x - y - r;
+    rfVelocity = -x - y - r;
+    lbVelocity = -x - y + r;
+    lfVelocity = x - y + r;
     velocities.add(rbVelocity * SPEED_MULT); //right back
     velocities.add(rfVelocity * SPEED_MULT); //right front
     velocities.add(lbVelocity * SPEED_MULT); //left back

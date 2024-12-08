@@ -21,6 +21,8 @@ public class Intake extends LinearOpMode {
 
         String state = "extending";
 
+        flipDown.setPosition(0);
+
         while (!isStarted()) {
             telemetry.addData("limit touched", limiter.isPressed());
             telemetry.update();

@@ -7,8 +7,11 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.components.Arm;
+import org.firstinspires.ftc.teamcode.components.Logger;
 import org.firstinspires.ftc.teamcode.util.custom.ParsedHardwareMap;
+import org.firstinspires.ftc.teamcode.util.custom.PressEventSystem;
 
 
 @TeleOp (group = "tuning", name="[TUNING] Arm")
@@ -19,20 +22,24 @@ public class ArmTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        Logger logger = new Logger();
+        logger.Initialize(telemetry);
         ParsedHardwareMap parsedHardwareMap = new ParsedHardwareMap(hardwareMap);
         DcMotorEx liftLeft = parsedHardwareMap.liftLeft;
-        Servo leftFourBar, rightFourBar, wrist;
+        Servo leftFourBar, rightFourBar, wrist, claw;
         TouchSensor liftLimiter = parsedHardwareMap.liftLimiter;
         leftFourBar = parsedHardwareMap.leftFourBar;
         rightFourBar = parsedHardwareMap.rightFourBar;
         wrist = parsedHardwareMap.wrist;
+        claw = parsedHardwareMap.claw;
+
+        PressEventSystem pressEventSystem = new PressEventSystem(telemetry);
 
         String state = "playground";
 
-        liftLeft.setTargetPosition(liftLeft.getCurrentPosition());
         leftFourBar.setPosition(0.4);
         rightFourBar.setPosition(0.4);
-        parsedHardwareMap.claw.setPosition(Arm.ClawPosition.Open);
+        claw.setPosition(Arm.ClawPosition.Open);
 
         while (!isStarted()) {
             telemetry.addData("Mode", state);
@@ -49,34 +56,40 @@ public class ArmTuner extends LinearOpMode {
             telemetry.update();
         }
 
+        pressEventSystem.AddListener(gamepad1, "a", () -> claw.setPosition(claw.getPosition() == Arm.ClawPosition.Open ? Arm.ClawPosition.Closed : Arm.ClawPosition.Open));
+
         while (!isStopRequested()) {
+            pressEventSystem.Update();
+
             switch (state) {
                 case "playground":
-                    double change = gamepad1.right_stick_y * 0.01;
+                    double change = -gamepad1.right_stick_y * 0.01;
                     //Math.clamp causes crash here, so using custom method
                     double leftClamped = clamp((float)(leftFourBar.getPosition() + change), 0, 1);
                     leftFourBar.setPosition(leftClamped);
                     rightFourBar.setPosition(leftClamped);
 
-                    double power = gamepad1.left_stick_y;
-                    if (power != 0) {
-                        int pos = (int)clamp((float)(liftLeft.getCurrentPosition() + Math.floor(power * 200)), -10000, 10000);
-                        liftLeft.setTargetPosition(pos);
+                    double power = -gamepad1.left_stick_y;
+                    if (power != 0 && (!liftLimiter.isPressed() || power > 0)) {
+                        liftLeft.setTargetPosition(liftLeft.getCurrentPosition() + (int)Math.round(power * 50));
                     }
 
                     double wristPower = gamepad1.right_trigger - gamepad1.left_trigger;
                     if (wristPower != 0) {
-                        wrist.setPosition(wrist.getPosition() + wristPower * 0.02);
+                        wrist.setPosition(wrist.getPosition() + wristPower * 0.01);
                     }
                     telemetry.addLine("***WARNING*** The lift is not limited. Be careful with how far you move the lift.");
                     telemetry.addData("Four Bar Position", leftFourBar.getPosition());
                     telemetry.addData("Wrist Position", parsedHardwareMap.wrist.getPosition());
+                    telemetry.addData("Lift Position", liftLeft.getCurrentPosition());
+                    telemetry.addData("Lift Target Position", liftLeft.getTargetPosition());
                     break;
                 case "calibrator":
                     telemetry.addLine("1) Raise the arm using the right trigger");
                     telemetry.addLine("2) Press A/X when you are ready to begin the automated tuning process.");
-
-                    liftLeft.setTargetPosition(liftLeft.getCurrentPosition() + Math.round(gamepad1.right_trigger * 100));
+                    liftLeft.setTargetPosition(liftLeft.getCurrentPosition() + Math.round(gamepad1.right_trigger * 50));
+                    telemetry.addData("Lift Position", liftLeft.getCurrentPosition());
+                    telemetry.addData("Lift Target Position", liftLeft.getTargetPosition());
 
                     if (gamepad1.a) {
                         state = "tuning";
@@ -99,9 +112,13 @@ public class ArmTuner extends LinearOpMode {
                     telemetry.addLine("Resetting encoder...");
                     break;
             }
-            telemetry.addData("Lift Position", liftLeft.getCurrentPosition());
-            telemetry.addData("Lift Target Position", liftLeft.getTargetPosition());
+
+            //liftLeft.setPower(-clamp((float)0.01 + (float)((double)(liftLeft.getTargetPosition() - liftLeft.getCurrentPosition()) / 400), -1, 1));
+
+            logger.Log("Target Position: " + liftLeft.getTargetPosition() + ", Current Position: " + liftLeft.getCurrentPosition() + ", Power (Amps): " + -clamp((float)0.05 + (float)((double)(liftLeft.getTargetPosition() - liftLeft.getCurrentPosition()) / 400), -1, 1) + ", Velocity: " + liftLeft.getVelocity() + ", Right trigger: " + gamepad1.right_trigger);
             telemetry.update();
         }
+
+        logger.close();
     }
 }
