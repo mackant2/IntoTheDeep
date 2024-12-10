@@ -34,7 +34,7 @@ public class Intake {
         public static final int OPEN = 1;
         public static final double CLOSED = 0;
     }
-    static class ExtenderPosition {
+    public static class ExtenderPosition {
         public static final int IN = 30;
         public static final int OUT = 2000;
     }
@@ -87,7 +87,7 @@ public class Intake {
     }
 
     public void SetIntakeState(IntakeState newState) {
-        state = newState;
+        state = state == newState ? IntakeState.DriverControlled : newState;
     }
 
     float clamp(float num, float min, float max) {

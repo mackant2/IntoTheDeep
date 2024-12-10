@@ -1,78 +1,66 @@
 package org.firstinspires.ftc.teamcode.drive.opmodes;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.components.Arm;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.components.Intake;
 import org.firstinspires.ftc.teamcode.components.Logger;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
-
-
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 @Autonomous(name = "[OFFICIAL] Auto", group = "official")
 public class ITDAuto extends LinearOpMode {
     Intake intake;
     Logger logger = new Logger();
     static Boolean wallAuto = false;
-    static Boolean specimenAuto = true;
     static Boolean Side;
+    DcMotorEx frontLeft, backLeft, backRight, frontRight;
+
+    public void moveStraight (double power, int time) {
+        frontLeft.setPower(power);
+        backLeft.setPower(power);
+        backRight.setPower(power);
+        frontRight.setPower(power);
+        sleep(time);
+        frontLeft.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+        frontRight.setPower(0);
+    }
+
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        frontLeft = drive.frontLeft;
+        backLeft = drive.backLeft;
+        backRight = drive.backRight;
+        frontRight = drive.frontRight;
 
-        drive.claw.setPosition(Arm.ClawPosition.Closed);
         drive.leftFourBar.setPosition(.55);
+        drive.rightFourBar.setPosition(.55);
         drive.liftLeft.setTargetPosition(0);
-        drive.extendo.setTargetPosition(30);
+        drive.extendo.setTargetPosition(500);
+        sleep(500);
+        drive.extendo.setTargetPosition(Intake.ExtenderPosition.IN);
         drive.flipdown.setPosition(0);
+        drive.wrist.setPosition(Arm.WristPosition.Specimen + 1);
 
         waitForStart();
 
+        drive.claw.setPosition(Arm.ClawPosition.Closed);
 
         if(Side == wallAuto) {
-
             drive.liftLeft.setTargetPosition(Arm.Height.LOWER_BUCKET);
+
+            drive.leftFourBar.setPosition(Arm.FourBarPosition.Specimen);
+            drive.rightFourBar.setPosition(Arm.FourBarPosition.Specimen);
 
             sleep(2000);
 
-            drive.leftFourBar.setPosition(Arm.FourBarPosition.Specimen);
             drive.wrist.setPosition(Arm.WristPosition.SampleDrop);
 
-            drive.frontLeft.setPower(.4);
-            drive.backLeft.setPower(.4);
-            drive.backRight.setPower(.4);
-            drive.frontRight.setPower(.4);
-
-            sleep(900);
-
-            drive.frontLeft.setPower(0);
-            drive.backLeft.setPower(0);
-            drive.backRight.setPower(0);
-            drive.frontRight.setPower(0);
+            moveStraight(.4, 900);
 
             sleep(1000);
 
@@ -80,82 +68,59 @@ public class ITDAuto extends LinearOpMode {
 
             sleep(10000);
 
-}
+        }
+        else {
+            //move to sub
+            drive.liftLeft.setTargetPosition(Arm.Height.UPPER_BAR - 775);
 
-if(Side == specimenAuto){
+            drive.leftFourBar.setPosition(Arm.FourBarPosition.Specimen);
+            drive.rightFourBar.setPosition(Arm.FourBarPosition.Specimen);
 
-drive.liftLeft.setTargetPosition(Arm.Height.UPPER_BAR - 782);
-drive.wrist.setPosition(Arm.WristPosition.Specimen + .3);
-drive.leftFourBar.setPosition(Arm.FourBarPosition.Specimen);
-drive.rightFourBar.setPosition(Arm.FourBarPosition.Specimen);
+            sleep(3000);
 
-sleep(1000);
+            moveStraight(.4, 2500);
 
-    drive.frontLeft.setPower(.4);
-    drive.backLeft.setPower(.4);
-    drive.backRight.setPower(.4);
-    drive.frontRight.setPower(.4);
-    sleep(2800);
+            //put specimen on rung
+            drive.wrist.setPosition(.5);
+            sleep(500);
 
-    drive.wrist.setPosition(.4);
-    sleep(500);
+            //release specimen
+            drive.claw.setPosition(Arm.ClawPosition.Open);
+            sleep(500);
 
-    drive.claw.setPosition(Arm.ClawPosition.Open);
-    sleep(500);
+            drive.wrist.setPosition(.85);
+            moveStraight(-.25, 450);
 
-    drive.frontLeft.setPower(-.25);
-    drive.backLeft.setPower(-.25);
-    drive.backRight.setPower(-.25);
-    drive.frontRight.setPower(-.25);
-    sleep(400);
+            drive.leftFourBar.setPosition(Arm.FourBarPosition.Specimen - .2);
+            drive.rightFourBar.setPosition(Arm.FourBarPosition.Specimen - .2);
+            drive.wrist.setPosition(.85);
+            sleep(500);
 
-    drive.leftFourBar.setPosition(Arm.FourBarPosition.Specimen - .2);
-    drive.rightFourBar.setPosition(Arm.FourBarPosition.Specimen - .2);
-    drive.wrist.setPosition(.85);
-    drive.frontLeft.setPower(0);
-    drive.backLeft.setPower(0);
-    drive.backRight.setPower(0);
-    drive.frontRight.setPower(0);
-    sleep(500);
+            //move to box
+            moveStraight(-.4, 300);
+            drive.leftFourBar.setPosition(Arm.FourBarPosition.Transfer);
+            drive.rightFourBar.setPosition(Arm.FourBarPosition.Transfer);
 
-    drive.frontLeft.setPower(-.4);
-    drive.backLeft.setPower(-.4);
-    drive.backRight.setPower(-.4);
-    drive.frontRight.setPower(-.4);
+            drive.frontLeft.setPower(.43);
+            drive.backLeft.setPower(-.4);
+            drive.backRight.setPower(.4);
+            drive.frontRight.setPower(-.43);
 
-    sleep(800);
+            drive.liftLeft.setTargetPosition(Arm.Height.DOWN);
+            drive.wrist.setPosition(.44);
+            sleep(1800);
 
-    drive.frontLeft.setPower(.43);
-    drive.backLeft.setPower(-.4);
-    drive.backRight.setPower(.4);
-    drive.frontRight.setPower(-.43);
-    drive.liftLeft.setTargetPosition(Arm.Height.DOWN);
-    drive.wrist.setPosition(.44);
-    sleep(1000);
+            moveStraight(.5,1000);
 
-    drive.leftFourBar.setPosition(Arm.FourBarPosition.Transfer);
-    drive.rightFourBar.setPosition(Arm.FourBarPosition.Transfer);
-
-    sleep(1500);
-
-    drive.frontLeft.setPower(-.3);
-    drive.backLeft.setPower(-.3);
-    drive.backRight.setPower(-.3);
-    drive.frontRight.setPower(-.3);
-
-}
+            drive.frontLeft.setPower(.43);
+            drive.backLeft.setPower(-.4);
+            drive.backRight.setPower(.4);
+            drive.frontRight.setPower(-.43);
+            sleep(700);
 
 
-
-
-
-
-
-
-
-
-
-
+            moveStraight(-.3, 4000);
+        }
         /*logger.Initialize(telemetry);
 
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);

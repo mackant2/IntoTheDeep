@@ -23,19 +23,18 @@ public class Arm {
         public static final double Specimen = 0.86;
     }
     public static class WristPosition {
-        public static final double Transfer = .44;
-        public static final double Specimen = 0.53;
+        public static final double Transfer = .56;
+        public static double Specimen = 0.71;
         public static final double SampleDrop = 0.53;
     }
     public static class Height {
         public static final int LOWER_BUCKET = 2400;
         public static final int UPPER_BUCKET = 3600;
-        public static final int LOWER_BAR = 1500;
         public static final int UPPER_BAR = 2500;
         public static final int DOWN = 0;
         public static final int Transfer = 300;
         public static final int ExtractionComplete = 480;
-        public static final int WallPickup = 600;
+        public static int WallPickup = 600;
         public static final int SpecimenDeposit = 2150;
     }
     public static class ClawPosition {
@@ -57,6 +56,7 @@ public class Arm {
         rightFourBar.setPosition(position);
     }
 
+
     public void PrepareToGrabSpecimen() {
         RotateFourBar(FourBarPosition.Specimen);
         wrist.setPosition(WristPosition.Specimen);
@@ -67,6 +67,10 @@ public class Arm {
         GoToHeight(Height.SpecimenDeposit);
         RotateFourBar(FourBarPosition.Specimen);
         wrist.setPosition(WristPosition.Specimen);
+    }
+
+    public void UpdateWallPickupHeight() {
+        Height.WallPickup = liftLeft.getCurrentPosition();
     }
 
     public Arm(Robot robot) {
@@ -131,12 +135,18 @@ public class Arm {
             case DriverControlled:
                 double power = -assistantController.left_stick_y;
                 if (power != 0) {
+                    if (assistantController.left_bumper) {
+                        power *= 0.2;
+                    }
                     int pos = (int)clamp((float)(liftLeft.getCurrentPosition() + Math.floor(power * LIFT_SPEED)), 0, MAX_HEIGHT);
                     liftLeft.setTargetPosition(pos);
                 }
 
                 double leftPos = leftFourBar.getPosition();
                 double change = -assistantController.right_stick_y * MAX_FOURBAR_SPEED;
+                if (assistantController.right_bumper) {
+                    change *= 0.5;
+                }
                 //Math.clamp causes crash here, so using custom method
                 double leftClamped = clamp((float)(leftPos + change), (float)FourBarPosition.Transfer, 1);
                 if (change != 0) {

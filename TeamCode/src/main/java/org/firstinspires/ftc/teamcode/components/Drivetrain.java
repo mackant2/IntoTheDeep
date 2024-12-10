@@ -61,8 +61,12 @@ public class Drivetrain {
 
     double x1 = driverController.left_stick_x;
     double y1 = driverController.left_stick_y;
+    if (driverController.left_bumper) {
+      x1 *= 0.5;
+      y1 *= 0.5;
+    }
     double r = driverController.right_stick_x * rotationFactor;
-    double  x = x1 * (Math.cos(Math.toRadians(theta))) - y1 * (Math.sin(Math.toRadians(theta)));
+    double x = x1 * (Math.cos(Math.toRadians(theta))) - y1 * (Math.sin(Math.toRadians(theta)));
     double y = x1 * (Math.sin(Math.toRadians(theta))) + y1 * (Math.cos(Math.toRadians(theta)));
     rbVelocity = x - y - r;
     rfVelocity = -x - y - r;

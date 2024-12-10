@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.components.Drivetrain;
 import org.firstinspires.ftc.teamcode.components.Intake;
 import org.firstinspires.ftc.teamcode.components.Logger;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.util.custom.EnhancedColorSensor;
 import org.firstinspires.ftc.teamcode.util.custom.PressEventSystem;
 import org.firstinspires.ftc.teamcode.util.custom.Robot;
 
@@ -36,8 +37,13 @@ public class ITDTeleOp extends LinearOpMode {
         pressEventSystem.AddListener(assistantController, "b", () -> robot.arm.GoToHeight(Arm.Height.UPPER_BAR));
         pressEventSystem.AddListener(assistantController, "y", robot.arm::PrepareToGrabSpecimen);
         pressEventSystem.AddListener(assistantController, "dpad_right", robot.arm::PrepareToDepositSpecimen);
+        pressEventSystem.AddListener(assistantController, "dpad_down", robot.arm::UpdateWallPickupHeight);
         pressEventSystem.AddListener(driverController, "right_bumper", robot.intake::ToggleFlipdown);
-        pressEventSystem.AddListener(driverController, "left_bumper", () -> robot.arm.stateMachine.setState(Arm.ArmState.InitiatingTransfer));
+        pressEventSystem.AddListener(driverController, "y", () -> {
+            if (EnhancedColorSensor.CheckSensor(drive.rightColorSensor, drive.rightDistanceSensor, EnhancedColorSensor.Color.Any)) {
+                robot.arm.stateMachine.setState(Arm.ArmState.InitiatingTransfer);
+            }
+        });
         pressEventSystem.AddListener(driverController, "dpad_up", robot.drivetrain::resetOrientation);
         pressEventSystem.AddListener(driverController, "dpad_left", () -> robot.intake.SetIntakeState(Intake.IntakeState.Intaking));
         pressEventSystem.AddListener(driverController, "dpad_right", () -> robot.intake.SetIntakeState(Intake.IntakeState.Rejecting));
