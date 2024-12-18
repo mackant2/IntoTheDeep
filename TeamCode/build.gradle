@@ -19,6 +19,8 @@ buildscript {
         maven {
             url = 'https://www.matthewo.tech/maven/' //Fast Load build dependency
         }
+        maven {url = 'https://jitpack.io'}
+        maven {url = 'https://www.matthewo.tech/maven'}
     }
 
     dependencies {
