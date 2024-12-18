@@ -30,7 +30,8 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.firstinspires.ftc.robotcontroller.external.samples;
+//package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode.main.components;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
@@ -40,8 +41,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.main.components.Logger;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -68,13 +72,19 @@ import java.util.List;
  */
 @TeleOp(name = "Sensor: Limelight3A", group = "Sensor")
 
-public class SensorLimelight3A extends LinearOpMode {
+public class Limelight extends LinearOpMode {
 
-    private Limelight3A limelight;
     @Override
     public void runOpMode() throws InterruptedException
     {
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
+
+        Logger logger = new Logger();
+        logger.Initialize(telemetry);
+        DecimalFormat positiveFormat = new DecimalFormat("#000.0000");
+        DecimalFormat negativeFormat = new DecimalFormat("#00.0000");
+
+
 
         telemetry.setMsTransmissionInterval(11);
 
@@ -97,14 +107,14 @@ public class SensorLimelight3A extends LinearOpMode {
 
         while (opModeIsActive()) {
             LLStatus status = limelight.getStatus();
-            limelight.pipelineSwitch(tag);
-            telemetry.addData("Name", "%s",
+            limelight.pipelineSwitch(yellow);
+           /* telemetry.addData("Name", "%s",
                     status.getName());
             telemetry.addData("LL", "Temp: %.1fC, CPU: %.1f%%, FPS: %d",
                     status.getTemp(), status.getCpu(),(int)status.getFps());
             telemetry.addData("Pipeline", "Index: %d, Type: %s",
                     status.getPipelineIndex(), status.getPipelineType());
-
+*/
             LLResult result = limelight.getLatestResult();
             if (result != null) {
                 // Access general information
@@ -115,7 +125,7 @@ public class SensorLimelight3A extends LinearOpMode {
                 telemetry.addData("LL Latency", captureLatency + targetingLatency);
                 telemetry.addData("Parse Latency", parseLatency);
                 telemetry.addData("PythonOutput", java.util.Arrays.toString(result.getPythonOutput()));
-                
+
                 if (result.isValid()) {
                     telemetry.addData("tx", result.getTx());
                     telemetry.addData("txnc", result.getTxNC());
@@ -123,6 +133,37 @@ public class SensorLimelight3A extends LinearOpMode {
                     telemetry.addData("tync", result.getTyNC());
 
                     telemetry.addData("Botpose", botpose.toString());
+
+                    String DataTx;
+                    String DataTxNC;
+                    String DataTy;
+                    String DataTyNC ;
+
+                    if (result.getTx() > 0) {
+                        DataTx = positiveFormat.format(result.getTx());
+                    } else {
+                        DataTx = negativeFormat.format(result.getTx());
+                    }
+
+                    if (result.getTxNC() > 0) {
+                        DataTxNC = positiveFormat.format(result.getTxNC());
+                    } else {
+                        DataTxNC = negativeFormat.format(result.getTxNC());
+                    }
+
+                    if (result.getTy() > 0) {
+                        DataTy = positiveFormat.format(result.getTy());
+                    } else {
+                        DataTy = negativeFormat.format(result.getTy());
+                    }
+
+                    if (result.getTyNC() > 0) {
+                        DataTyNC = positiveFormat.format(result.getTyNC());
+                    } else {
+                        DataTyNC = negativeFormat.format(result.getTyNC());
+                    }
+
+                    logger.Log("tx = " + DataTx + "  txnc = " + DataTxNC + "  ty = " + DataTy + "  tync = " + DataTyNC);
 
                     // Access barcode results
                     List<LLResultTypes.BarcodeResult> barcodeResults = result.getBarcodeResults();
@@ -161,5 +202,6 @@ public class SensorLimelight3A extends LinearOpMode {
             telemetry.update();
         }
         limelight.stop();
+        logger.close();
     }
 }

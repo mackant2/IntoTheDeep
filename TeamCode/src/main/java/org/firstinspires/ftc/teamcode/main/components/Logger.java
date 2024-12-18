@@ -5,6 +5,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 
 public class Logger {
     private FileWriter writer;
@@ -31,8 +32,8 @@ public class Logger {
         recentLogItem.setValue(data);
         try {
             long msSinceStart = System.currentTimeMillis() - startTime;
-            double secondsSinceStart = msSinceStart / 1000 + msSinceStart % 1000;
-            writer.write("[" + secondsSinceStart + "] " + data);
+            double secondsSinceStart = (double) msSinceStart / 1000.0;
+            writer.write(data + " [" + new DecimalFormat("#0.000").format(secondsSinceStart) + "]");
             writer.write(System.lineSeparator());
         } catch (IOException e) {
            telemetry.addData("File Creation Error", e.getMessage());

@@ -2,10 +2,10 @@ package org.firstinspires.ftc.teamcode.main.opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 @Autonomous
-public class specimenAuto extends ITDAuto {
+public class specimenAuto extends ITDAutoRR {
 
     public specimenAuto(){
-        super.Side = true;
+        super.cycleSamples = false;
     }
 
 }
