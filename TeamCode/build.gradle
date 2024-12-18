@@ -40,7 +40,7 @@ android {
 
 repositories {
     maven {url = "https://maven.brott.dev"} //needed for roadrunner
-    maven { url 'https://jitpack.io' } //needed for State Factory
+    maven {url = 'https://jitpack.io' } //needed for State Factory
     maven {url = 'https://www.matthewo.tech/maven/'} //needed for Fast Load
 }
 

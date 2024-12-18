@@ -24,9 +24,9 @@ public class Drivetrain extends LinearOpMode {
         backRight.setPower(0.5);
 
         while (!isStopRequested()) {
-            telemetry.addData("Left front", frontLeft.getCurrentPosition());
-            telemetry.addData("Back right", backRight.getCurrentPosition());
-            telemetry.addData("Front right (Perp)", frontRight.getCurrentPosition());
+            telemetry.addData("Left front(par0)", frontLeft.getCurrentPosition());
+            telemetry.addData("Back right(perp)", backRight.getCurrentPosition());
+            telemetry.addData("Front right (par1)", frontRight.getCurrentPosition());
             telemetry.update();
         }
     }

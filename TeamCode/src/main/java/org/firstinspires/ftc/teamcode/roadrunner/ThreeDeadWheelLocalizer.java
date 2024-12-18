@@ -12,6 +12,7 @@ import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
 import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
 import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.main.utils.ParsedHardwareMap;
@@ -20,9 +21,9 @@ import org.firstinspires.ftc.teamcode.roadrunner.messages.ThreeDeadWheelInputsMe
 @Config
 public final class ThreeDeadWheelLocalizer implements Localizer {
     public static class Params {
-        public double par0YTicks = 0.0; // y position of the first parallel encoder (in tick units)
-        public double par1YTicks = 1.0; // y position of the second parallel encoder (in tick units)
-        public double perpXTicks = 0.0; // x position of the perpendicular encoder (in tick units)
+        public double par0YTicks = 4461.727624500408; // y position of the first parallel encoder (in tick units)
+        public double par1YTicks = -5133.824748395778; // y position of the second parallel encoder (in tick units)
+        public double perpXTicks = -4253.551026216423; // x position of the perpendicular encoder (in tick units)
     }
 
     public static Params PARAMS = new Params();
@@ -38,11 +39,10 @@ public final class ThreeDeadWheelLocalizer implements Localizer {
         ParsedHardwareMap parsedHardwareMap = new ParsedHardwareMap(hardwareMap);
 
         par0 = new OverflowEncoder(new RawEncoder(parsedHardwareMap.frontLeft));
-        par1 = new OverflowEncoder(new RawEncoder(parsedHardwareMap.backRight));
-        perp = new OverflowEncoder(new RawEncoder(parsedHardwareMap.backLeft));
+        par1 = new OverflowEncoder(new RawEncoder(parsedHardwareMap.frontRight));
+        perp = new OverflowEncoder(new RawEncoder(parsedHardwareMap.backRight));
 
-        // TODO: reverse encoder directions if needed
-        //   par0.setDirection(DcMotorSimple.Direction.REVERSE);
+        par0.setDirection(DcMotorSimple.Direction.REVERSE);
 
         this.inPerTick = inPerTick;
 
