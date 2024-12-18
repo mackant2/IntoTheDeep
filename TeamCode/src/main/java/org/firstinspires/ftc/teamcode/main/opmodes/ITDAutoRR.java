@@ -50,6 +50,9 @@ public class ITDAutoRR extends LinearOpMode {
         TrajectoryActionBuilder oneEighty = drive.actionBuilder(initialPose)
                         .turn(Math.toRadians(180));
 
+
+
+        Actions.runBlocking(new SequentialAction(specimenTAB.build()));
         Actions.runBlocking(new SequentialAction(oneEighty.build()));
     }
 }
