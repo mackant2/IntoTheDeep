@@ -1,9 +1,12 @@
 package org.firstinspires.ftc.teamcode.main.opmodes;
 
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.main.components.Arm;
 import org.firstinspires.ftc.teamcode.main.components.Intake;
 import org.firstinspires.ftc.teamcode.main.utils.ParsedHardwareMap;
@@ -13,6 +16,8 @@ public class ITDAuto extends LinearOpMode {
     static Boolean wallAuto = false;
     static Boolean Side;
     DcMotorEx frontLeft, backLeft, backRight, frontRight;
+
+    SparkFunOTOS myOtos;
 
     public void moveStraight (double power, int time) {
         frontLeft.setPower(power);
@@ -34,6 +39,8 @@ public class ITDAuto extends LinearOpMode {
         backRight = parsedHardwareMap.backRight;
         frontRight = parsedHardwareMap.frontRight;
 
+        myOtos = parsedHardwareMap.myOtos;
+
         parsedHardwareMap.leftFourBar.setPosition(.55);
         parsedHardwareMap.rightFourBar.setPosition(.55);
         parsedHardwareMap.liftLeft.setTargetPosition(0);
@@ -42,6 +49,8 @@ public class ITDAuto extends LinearOpMode {
         parsedHardwareMap.extender.setTargetPosition(Intake.ExtenderPosition.IN);
         parsedHardwareMap.flipDown.setPosition(0);
         parsedHardwareMap.wrist.setPosition(Arm.WristPosition.Specimen + 1);
+
+        configureOtos();
 
         waitForStart();
 
@@ -118,5 +127,36 @@ public class ITDAuto extends LinearOpMode {
 
             moveStraight(-.3, 4000);
         }
+
+    }
+
+    private void configureOtos() {
+        telemetry.addLine("Configuring OTOS...");
+        telemetry.update();
+
+        myOtos.setLinearUnit(DistanceUnit.INCH);
+        myOtos.setAngularUnit(AngleUnit.DEGREES);
+
+        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 0);
+        myOtos.setOffset(offset);
+
+        myOtos.setLinearScalar(1.0);
+        myOtos.setAngularScalar(1.0);
+
+        myOtos.calibrateImu();
+
+        myOtos.resetTracking();
+
+        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
+        myOtos.setPosition(currentPosition);
+
+        SparkFunOTOS.Version hwVersion = new SparkFunOTOS.Version();
+        SparkFunOTOS.Version fwVersion = new SparkFunOTOS.Version();
+        myOtos.getVersionInfo(hwVersion, fwVersion);
+
+        telemetry.addLine("OTOS configured!");
+
+        telemetry.update();
     }
 }
+

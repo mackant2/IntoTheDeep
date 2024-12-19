@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
+
 public class Drivetrain {
   Gamepad driverController;
   Set<Double> velocities = new HashSet<>();
@@ -30,6 +32,9 @@ public class Drivetrain {
   float degree_Zero = 0;
   double SPEED_MULT = 1.5;
 
+  SparkFunOTOS myOtos;
+
+
   public void resetOrientation() {
       degree_Zero = angles.firstAngle;
   }
@@ -42,6 +47,8 @@ public class Drivetrain {
     rightFront = robot.parsedHardwareMap.frontRight;
     leftBack = robot.parsedHardwareMap.backLeft;
     leftFront = robot.parsedHardwareMap.frontLeft;
+
+    myOtos = robot.parsedHardwareMap.myOtos;
 
     imu = robot.parsedHardwareMap.imu;
   }
@@ -56,7 +63,15 @@ public class Drivetrain {
       theta += 360;
     }
 
+    SparkFunOTOS.Pose2D pos = myOtos.getPosition();
+
+    robot.opMode.telemetry.addData("X coordinate", pos.x);
+    robot.opMode.telemetry.addData("Y coordinate", pos.y);
+    robot.opMode.telemetry.addData("Heading angle", pos.h);
+
     robot.opMode.telemetry.addData("angle", theta);
+
+    robot.opMode.telemetry.update();
 
     double x1 = driverController.left_stick_x;
     double y1 = driverController.left_stick_y;

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.main.utils;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -20,6 +21,7 @@ public class ParsedHardwareMap {
     public DistanceSensor leftDistanceSensor, rightDistanceSensor, transferDistanceSensor;
     public TouchSensor liftLimiter, extenderLimiter;
     public IMU imu;
+    public SparkFunOTOS myOtos;
 
     public ParsedHardwareMap(HardwareMap hardwareMap) {
         //Motors
@@ -31,6 +33,8 @@ public class ParsedHardwareMap {
         liftRight = hardwareMap.get(DcMotorEx.class, "liftRight");
         extender = hardwareMap.get(DcMotorEx.class, "Extendo");
         intake = hardwareMap.get(DcMotorEx.class, "Intake");
+
+        myOtos = hardwareMap.get(SparkFunOTOS.class, "otos");
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
