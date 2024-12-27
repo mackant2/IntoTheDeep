@@ -71,8 +71,6 @@ public class Drivetrain {
 
     robot.opMode.telemetry.addData("angle", theta);
 
-    robot.opMode.telemetry.update();
-
     double x1 = driverController.left_stick_x;
     double y1 = driverController.left_stick_y;
     if (driverController.left_bumper) {

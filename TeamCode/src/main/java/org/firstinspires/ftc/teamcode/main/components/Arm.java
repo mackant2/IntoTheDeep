@@ -29,7 +29,7 @@ public class Arm {
     }
     public static class Height {
         public static final int LOWER_BUCKET = 2400;
-        public static final int UPPER_BUCKET = 3600;
+        public static final int UPPER_BUCKET = 3700;
         public static final int UPPER_BAR = 2500;
         public static final int DOWN = 0;
         public static final int Transfer = 300;
@@ -46,8 +46,8 @@ public class Arm {
     DcMotorEx liftLeft, liftRight;
     Servo leftFourBar, rightFourBar, wrist, claw;
     final double MAX_FOURBAR_SPEED = 0.02;
-    final float MAX_HEIGHT = Height.UPPER_BAR;
-    final int LIFT_SPEED = 200;
+    final float MAX_HEIGHT = Height.UPPER_BUCKET;
+    final int LIFT_MAX_DIFF = 400;
     public StateMachine stateMachine;
     Robot robot;
 
@@ -138,8 +138,7 @@ public class Arm {
                     if (assistantController.left_bumper) {
                         power *= 0.2;
                     }
-                    int pos = (int)clamp((float)(liftLeft.getCurrentPosition() + Math.floor(power * LIFT_SPEED)), 0, MAX_HEIGHT);
-                    liftLeft.setTargetPosition(pos);
+                    GoToHeight((int)clamp((float)(liftLeft.getCurrentPosition() + 1 + Math.floor(power * LIFT_MAX_DIFF)), 0, MAX_HEIGHT));
                 }
 
                 double leftPos = leftFourBar.getPosition();

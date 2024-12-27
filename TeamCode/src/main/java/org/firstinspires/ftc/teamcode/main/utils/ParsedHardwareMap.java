@@ -83,7 +83,7 @@ public class ParsedHardwareMap {
         rightFourBar.setDirection(Servo.Direction.REVERSE);
         liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        liftLeft.setVelocity(1000);
+        liftLeft.setPower(1);
 
         //Configure Intake
         intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);

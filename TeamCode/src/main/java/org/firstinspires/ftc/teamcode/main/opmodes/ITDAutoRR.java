@@ -52,7 +52,7 @@ public class ITDAutoRR extends LinearOpMode {
 
 
 
-        Actions.runBlocking(new SequentialAction(specimenTAB.build()));
+      //  Actions.runBlocking(new SequentialAction(specimenTAB.build()));
         Actions.runBlocking(new SequentialAction(oneEighty.build()));
     }
 }

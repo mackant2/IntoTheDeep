@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.main.components.Arm;
 import org.firstinspires.ftc.teamcode.main.components.Logger;
 import org.firstinspires.ftc.teamcode.main.utils.ParsedHardwareMap;
@@ -69,9 +70,12 @@ public class ArmTuner extends LinearOpMode {
                     rightFourBar.setPosition(leftClamped);
 
                     double power = -gamepad1.left_stick_y;
-                    if (power != 0 && (!liftLimiter.isPressed() || power > 0)) {
-                        liftLeft.setTargetPosition(liftLeft.getCurrentPosition() + (int)Math.round(power * 50));
+                    int maxDiff = 400;
+                    if (!liftLimiter.isPressed() || power > 0) {
+                        liftLeft.setTargetPosition(liftLeft.getCurrentPosition() + 1 + (int)Math.round(power * maxDiff));
                     }
+
+                    logger.Log("Position: " + liftLeft.getCurrentPosition() + ", Power: " + liftLeft.getPower() + ", Velocity: " + liftLeft.getVelocity() + ", Voltage (MILLIAMPS): " + liftLeft.getCurrent(CurrentUnit.MILLIAMPS));
 
                     double wristPower = gamepad1.right_trigger - gamepad1.left_trigger;
                     if (wristPower != 0) {
@@ -82,6 +86,8 @@ public class ArmTuner extends LinearOpMode {
                     telemetry.addData("Wrist Position", parsedHardwareMap.wrist.getPosition());
                     telemetry.addData("Lift Position", liftLeft.getCurrentPosition());
                     telemetry.addData("Lift Target Position", liftLeft.getTargetPosition());
+                    telemetry.addData("Lift Velocity", liftLeft.getVelocity());
+                    telemetry.addData("Lift Power", liftLeft.getPower());
                     break;
                 case "calibrator":
                     telemetry.addLine("1) Raise the arm using the right trigger");
@@ -113,8 +119,6 @@ public class ArmTuner extends LinearOpMode {
             }
 
             //liftLeft.setPower(-clamp((float)0.01 + (float)((double)(liftLeft.getTargetPosition() - liftLeft.getCurrentPosition()) / 400), -1, 1));
-
-            logger.Log("Target Position: " + liftLeft.getTargetPosition() + ", Current Position: " + liftLeft.getCurrentPosition() + ", Power (Amps): " + -clamp((float)0.05 + (float)((double)(liftLeft.getTargetPosition() - liftLeft.getCurrentPosition()) / 400), -1, 1) + ", Velocity: " + liftLeft.getVelocity() + ", Right trigger: " + gamepad1.right_trigger);
             telemetry.update();
         }
 
