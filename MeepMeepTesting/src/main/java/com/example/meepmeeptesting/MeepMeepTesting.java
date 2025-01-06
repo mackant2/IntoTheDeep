@@ -1,6 +1,7 @@
 package com.example.meepmeeptesting;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.roadrunner.Constraints;
@@ -15,7 +16,7 @@ public class MeepMeepTesting {
         final double length = 15.75;
         final double specimenSampleY = -12;
         final Vector2d[] specimenSamplePositions = {new Vector2d(45, specimenSampleY), new Vector2d(55, specimenSampleY), new Vector2d(61, specimenSampleY)};
-        final Vector2d specimenHangPos = new Vector2d(10, -34);
+        final Vector2d specimenHangPos = new Vector2d(8, -34);
         final Vector2d specimenPickupPos = new Vector2d(36, -56);
 
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
@@ -24,14 +25,14 @@ public class MeepMeepTesting {
                 .setDimensions(width, length)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(width / 2, -72 + length / 2, Math.toRadians(90)))
+        TrajectoryActionBuilder tab1 = myBot.getDrive().actionBuilder(new Pose2d(width / 2, -72 + length / 2, Math.toRadians(90)))
                 .lineToY(-34)
-                        .setReversed(true)
-                        .splineToLinearHeading(new Pose2d(34, -30, 0), Math.PI / 2)
+                .setReversed(true)
+                .splineToLinearHeading(new Pose2d(34, -30, 0), Math.PI / 2)
                 .setTangent(Math.toRadians(90))
-                                .lineToY(-12)
-                                .splineToConstantHeading(new Vector2d(specimenSamplePositions[0].x, -48), Math.toRadians(-110))
-                                .splineToConstantHeading(specimenSamplePositions[0], 0)
+                .lineToY(-12)
+                .splineToConstantHeading(new Vector2d(specimenSamplePositions[0].x, -48), Math.toRadians(-110))
+                .splineToConstantHeading(specimenSamplePositions[0], 0)
                 .splineToConstantHeading(new Vector2d(specimenSamplePositions[1].x, -48), Math.toRadians(90))
                 .splineToConstantHeading(new Vector2d(specimenSamplePositions[2].x, -12), 0)
                 .setTangent(Math.PI / 2)
@@ -43,15 +44,13 @@ public class MeepMeepTesting {
                 .strafeToLinearHeading(specimenPickupPos, Math.toRadians(-90))
                 .strafeToLinearHeading(specimenHangPos, Math.toRadians(90))
                 .strafeToLinearHeading(specimenPickupPos, Math.toRadians(-90))
-                .strafeToLinearHeading(specimenHangPos, Math.toRadians(90))
-                /*.turn(Math.toRadians(90))
-                .lineToY(30)
-                .turn(Math.toRadians(90))
-                .lineToX(0)
-                .turn(Math.toRadians(90))
-                .lineToY(0)
-                .turn(Math.toRadians(90))*/
-                .build());
+                .strafeToLinearHeading(specimenHangPos, Math.toRadians(90));
+
+        TrajectoryActionBuilder tab2 = myBot.getDrive().actionBuilder(new Pose2d(width / 2, -72 + length / 2, Math.toRadians(90)))
+                .lineToY(-34)
+                        .strafeToLinearHeading(new Vector2d(26, -38), Math.toRadians(30));
+
+        myBot.runAction(tab1.build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_INTO_THE_DEEP_OFFICIAL)
                 .setDarkMode(true)

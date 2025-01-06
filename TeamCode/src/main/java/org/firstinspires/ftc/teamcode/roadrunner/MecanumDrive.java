@@ -81,9 +81,9 @@ public final class MecanumDrive {
         public double kA = 0.00003;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 50;
+        public double maxWheelVel = 40;
         public double minProfileAccel = -30;
-        public double maxProfileAccel = 50;
+        public double maxProfileAccel = 20;
 
         // turn profile parameters (in radians)
         public double maxAngVel = Math.PI; // shared with path
@@ -92,7 +92,7 @@ public final class MecanumDrive {
         // path controller gains
         public double axialGain = 6;
         public double lateralGain = 14;//12
-        public double headingGain = 10; // shared with turn
+        public double headingGain = 16; // shared with turn
 
         public double axialVelGain = 0;
         public double lateralVelGain = 0;
