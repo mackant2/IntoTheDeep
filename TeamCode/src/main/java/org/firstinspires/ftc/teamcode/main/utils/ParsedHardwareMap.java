@@ -90,8 +90,8 @@ public class ParsedHardwareMap {
         extender.setTargetPosition(extender.getCurrentPosition());
         extender.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         extender.setDirection(DcMotorSimple.Direction.REVERSE);
-        extender.setVelocity(1000);
         extender.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        extender.setPower(1);
 
         imu = hardwareMap.get(IMU.class, "imu");
     }

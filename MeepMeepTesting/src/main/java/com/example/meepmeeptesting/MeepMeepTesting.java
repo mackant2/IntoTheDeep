@@ -26,8 +26,25 @@ public class MeepMeepTesting {
                 .build();
 
         TrajectoryActionBuilder tab1 = myBot.getDrive().actionBuilder(new Pose2d(width / 2, -72 + length / 2, Math.toRadians(90)))
-                .lineToY(-34)
+                .lineToY(-38.5)
+                .waitSeconds(2)
                 .setReversed(true)
+                .setTangent(0)
+                .lineToXLinearHeading(34, Math.toRadians(10))
+                .setTangent(Math.PI / 2)
+                .lineToY(-10)
+                .setTangent(0)
+                .lineToX(40)
+                .setTangent(Math.PI / 2)
+                .lineToY(-54)
+                .lineToY(-10)
+                .setTangent(0)
+                .lineToX(50)
+                .setTangent(Math.PI / 2)
+                .lineToY(-60)
+                .lineToY(-10);
+
+        /*        .setReversed(true)
                 .splineToLinearHeading(new Pose2d(34, -30, 0), Math.PI / 2)
                 .setTangent(Math.toRadians(90))
                 .lineToY(-12)
@@ -45,7 +62,7 @@ public class MeepMeepTesting {
                 .strafeToLinearHeading(specimenHangPos, Math.toRadians(90))
                 .strafeToLinearHeading(specimenPickupPos, Math.toRadians(-90))
                 .strafeToLinearHeading(specimenHangPos, Math.toRadians(90));
-
+*/
         TrajectoryActionBuilder tab2 = myBot.getDrive().actionBuilder(new Pose2d(width / 2, -72 + length / 2, Math.toRadians(90)))
                 .lineToY(-34)
                         .strafeToLinearHeading(new Vector2d(26, -38), Math.toRadians(30));

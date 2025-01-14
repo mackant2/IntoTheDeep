@@ -161,5 +161,6 @@ public class Intake {
         robot.opMode.telemetry.addData("Extender Velocity", extender.getVelocity());
         robot.opMode.telemetry.addData("Extender Position", extender.getCurrentPosition());
         robot.opMode.telemetry.addData("Extender Target Position", extender.getTargetPosition());
+        robot.opMode.telemetry.addData("Extender Power", extender.getPower());
     }
 }

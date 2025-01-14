@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.main.components;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -20,57 +24,66 @@ public class Arm {
     public static class FourBarPosition {
         public static final double Transfer = 0.09;
         public static final double Extraction = 0;
-        public static final double Specimen = 0.86;
+        public static final double Specimen = 0.87;
     }
     public static class WristPosition {
         public static final double Transfer = .56;
-        public static double Specimen = 0.71;
+        public static final double Specimen = 0.58;
+        public static final double Straight = 0.42;
         public static final double SampleDrop = 0.53;
     }
     public static class Height {
         public static final int LOWER_BUCKET = 2400;
         public static final int UPPER_BUCKET = 3700;
-        public static final int UPPER_BAR = 2500;
+        public static final int UPPER_BAR = 2400;
         public static final int DOWN = 0;
         public static final int Transfer = 300;
         public static final int ExtractionComplete = 480;
         public static int WallPickup = 600;
-        public static final int SpecimenDeposit = 2150;
     }
     public static class ClawPosition {
-        public static final double Open = 0.8;
-        public static final double Closed = 0.35;
+        public static final double Open = 1;
+        public static final double Closed = 0;
     }
     Telemetry telemetry;
     Gamepad assistantController;
     DcMotorEx liftLeft, liftRight;
     Servo leftFourBar, rightFourBar, wrist, claw;
-    final double MAX_FOURBAR_SPEED = 0.02;
+    final double MAX_FOURBAR_SPEED = 0.05;
     final float MAX_HEIGHT = Height.UPPER_BUCKET;
     final int LIFT_MAX_DIFF = 400;
     public StateMachine stateMachine;
     Robot robot;
 
-    void RotateFourBar(double position) {
+    public void RotateFourBar(double position) {
         leftFourBar.setPosition(position);
         rightFourBar.setPosition(position);
     }
 
+    void RotateWrist(int degrees) {
+        wrist.setPosition(degrees / 180f + 0.5f);
+    }
+
+    double GetWristDegrees() {
+        return wrist.getPosition() / 180 + 0.5;
+    }
 
     public void PrepareToGrabSpecimen() {
         RotateFourBar(FourBarPosition.Specimen);
-        wrist.setPosition(WristPosition.Specimen);
+        wrist.setPosition(WristPosition.Straight);
+        claw.setPosition(ClawPosition.Open);
         GoToHeight(Height.WallPickup);
     }
 
     public void PrepareToDepositSpecimen() {
-        GoToHeight(Height.SpecimenDeposit);
+        GoToHeight(Height.UPPER_BAR);
         RotateFourBar(FourBarPosition.Specimen);
         wrist.setPosition(WristPosition.Specimen);
     }
 
     public void UpdateWallPickupHeight() {
-        Height.WallPickup = liftLeft.getCurrentPosition();
+        robot.logger.Log("WALL PICKUP HEIGHT: " + liftLeft.getTargetPosition());
+        Height.WallPickup = liftLeft.getTargetPosition();
     }
 
     public Arm(Robot robot) {
@@ -118,6 +131,14 @@ public class Arm {
     public void GoToHeight(int height) {
         liftLeft.setTargetPosition(height);
         //liftRight.setTargetPosition(height);
+    }
+
+    public Action GoToSpecimenPosition() {
+        return new GoToSpecimenPosition();
+    }
+
+    public Action HangSpecimen() {
+        return new HangSpecimen();
     }
 
     float clamp(float num, float min, float max) {
@@ -199,5 +220,51 @@ public class Arm {
         telemetry.addData("Lift Target", liftLeft.getTargetPosition());
         telemetry.addData("Four Bar Position", leftFourBar.getPosition());
         telemetry.addData("Wrist Position", wrist.getPosition());
+    }
+
+    public class GoToSpecimenPosition implements Action {
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            claw.setPosition(ClawPosition.Closed);
+            RotateFourBar(FourBarPosition.Specimen);
+            wrist.setPosition(WristPosition.Specimen);
+            GoToHeight(Height.UPPER_BAR);
+            return false;
+        }
+    }
+
+    public class HangSpecimen implements Action {
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            GoToHeight(1600);
+            return false;
+        }
+    }
+
+    public class ReleaseSpecimen implements Action {
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            claw.setPosition(Arm.ClawPosition.Open);
+            wrist.setPosition(0.5);
+            return false;
+        }
+    }
+
+    public Action ReleaseSpecimen() {
+        return new ReleaseSpecimen();
+    }
+
+    public class Reset implements Action {
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            GoToHeight(Height.DOWN);
+            wrist.setPosition(0.5);
+            RotateFourBar(0.5);
+            return false;
+        }
+    }
+
+    public Action Reset() {
+        return new Reset();
     }
 }

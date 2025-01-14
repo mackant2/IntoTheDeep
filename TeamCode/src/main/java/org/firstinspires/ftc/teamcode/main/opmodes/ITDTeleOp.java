@@ -20,7 +20,7 @@ public class ITDTeleOp extends LinearOpMode {
     Gamepad assistantController;
     Robot robot;
 
-    SparkFunOTOS myOtos;
+    SparkFunOTOS otos;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -28,20 +28,23 @@ public class ITDTeleOp extends LinearOpMode {
         assistantController = gamepad2;
         ParsedHardwareMap parsedHardwareMap = new ParsedHardwareMap(hardwareMap);
         PressEventSystem pressEventSystem = new PressEventSystem(telemetry);
-        myOtos = parsedHardwareMap.myOtos;
+        otos = parsedHardwareMap.myOtos;
 
         configureOtos();
 
         waitForStart();
 
-        robot = new Robot(this, parsedHardwareMap);
+        robot = new Robot(this, parsedHardwareMap, true);
 
+        //lift & four bar
         pressEventSystem.AddListener(assistantController, "a",robot.arm::ToggleClaw);
         pressEventSystem.AddListener(assistantController, "x", () -> robot.arm.GoToHeight(Arm.Height.LOWER_BUCKET));
         pressEventSystem.AddListener(assistantController, "b", () -> robot.arm.GoToHeight(Arm.Height.UPPER_BAR));
         pressEventSystem.AddListener(assistantController, "y", robot.arm::PrepareToGrabSpecimen);
         pressEventSystem.AddListener(assistantController, "dpad_right", robot.arm::PrepareToDepositSpecimen);
         pressEventSystem.AddListener(assistantController, "dpad_down", robot.arm::UpdateWallPickupHeight);
+
+        //drivetrain & intake
         pressEventSystem.AddListener(driverController, "right_bumper", robot.intake::ToggleFlipdown);
         pressEventSystem.AddListener(driverController, "y", () -> {
             if (EnhancedColorSensor.CheckSensor(parsedHardwareMap.rightColorSensor, parsedHardwareMap.rightDistanceSensor, EnhancedColorSensor.Color.Any)) {
@@ -51,6 +54,7 @@ public class ITDTeleOp extends LinearOpMode {
         pressEventSystem.AddListener(driverController, "dpad_up", robot.drivetrain::resetOrientation);
         pressEventSystem.AddListener(driverController, "dpad_left", () -> robot.intake.SetIntakeState(Intake.IntakeState.Intaking));
         pressEventSystem.AddListener(driverController, "dpad_right", () -> robot.intake.SetIntakeState(Intake.IntakeState.Rejecting));
+
         while (!isStopRequested()) {
             //Update utils
             pressEventSystem.Update();
@@ -59,31 +63,33 @@ public class ITDTeleOp extends LinearOpMode {
 
             telemetry.update();
         }
+
+        robot.logger.close();
     }
 
     private void configureOtos() {
         telemetry.addLine("Configuring OTOS...");
         telemetry.update();
 
-        myOtos.setLinearUnit(DistanceUnit.INCH);
-        myOtos.setAngularUnit(AngleUnit.DEGREES);
+        otos.setLinearUnit(DistanceUnit.INCH);
+        otos.setAngularUnit(AngleUnit.DEGREES);
 
         SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 0);
-        myOtos.setOffset(offset);
+        otos.setOffset(offset);
 
-        myOtos.setLinearScalar(1.0);
-        myOtos.setAngularScalar(1.0);
+        otos.setLinearScalar(1.0);
+        otos.setAngularScalar(1.0);
 
-        myOtos.calibrateImu();
+        otos.calibrateImu();
 
-        myOtos.resetTracking();
+        otos.resetTracking();
 
         SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
-        myOtos.setPosition(currentPosition);
+        otos.setPosition(currentPosition);
 
         SparkFunOTOS.Version hwVersion = new SparkFunOTOS.Version();
         SparkFunOTOS.Version fwVersion = new SparkFunOTOS.Version();
-        myOtos.getVersionInfo(hwVersion, fwVersion);
+        otos.getVersionInfo(hwVersion, fwVersion);
 
         telemetry.addLine("OTOS configured!");
 

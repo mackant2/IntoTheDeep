@@ -24,7 +24,7 @@ public class Robot {
         intake.Initialize();
     }
 
-    public Robot(LinearOpMode opMode, ParsedHardwareMap parsedHardwareMap) {
+    public Robot(LinearOpMode opMode, ParsedHardwareMap parsedHardwareMap, boolean isTeleop) {
         this.parsedHardwareMap = parsedHardwareMap;
         this.opMode = opMode;
         arm = new Arm(this);
@@ -34,7 +34,9 @@ public class Robot {
         intake = new Intake(parsedHardwareMap, this);
         transferPlate = new TransferPlate(this);
 
-        Initialize();
+        if (isTeleop) {
+            Initialize();
+        }
     }
 
     public void Update() {

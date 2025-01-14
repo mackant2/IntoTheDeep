@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.main.components.Arm;
 import org.firstinspires.ftc.teamcode.main.components.Logger;
 import org.firstinspires.ftc.teamcode.main.utils.ParsedHardwareMap;
 import org.firstinspires.ftc.teamcode.main.utils.PressEventSystem;
+import org.firstinspires.ftc.teamcode.main.utils.Robot;
 
 
 @TeleOp (group = "tuning", name="[TUNING] Arm")
@@ -22,9 +23,9 @@ public class ArmTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Logger logger = new Logger();
-        logger.Initialize(telemetry);
-        ParsedHardwareMap parsedHardwareMap = new ParsedHardwareMap(hardwareMap);
+        Robot robot = new Robot(this, new ParsedHardwareMap(hardwareMap), false);
+
+        ParsedHardwareMap parsedHardwareMap = robot.parsedHardwareMap;
         DcMotorEx liftLeft = parsedHardwareMap.liftLeft;
         Servo leftFourBar, rightFourBar, wrist, claw;
         TouchSensor liftLimiter = parsedHardwareMap.liftLimiter;
@@ -37,9 +38,9 @@ public class ArmTuner extends LinearOpMode {
 
         String state = "playground";
 
-        leftFourBar.setPosition(0.4);
-        rightFourBar.setPosition(0.4);
+        robot.arm.RotateFourBar(0.5);
         claw.setPosition(Arm.ClawPosition.Open);
+        wrist.setPosition(Arm.WristPosition.Specimen);
 
         while (!isStarted()) {
             telemetry.addData("Mode", state);
@@ -75,15 +76,16 @@ public class ArmTuner extends LinearOpMode {
                         liftLeft.setTargetPosition(liftLeft.getCurrentPosition() + 1 + (int)Math.round(power * maxDiff));
                     }
 
-                    logger.Log("Position: " + liftLeft.getCurrentPosition() + ", Power: " + liftLeft.getPower() + ", Velocity: " + liftLeft.getVelocity() + ", Voltage (MILLIAMPS): " + liftLeft.getCurrent(CurrentUnit.MILLIAMPS));
+                    robot.logger.Log("Position: " + liftLeft.getCurrentPosition() + ", Power: " + liftLeft.getPower() + ", Velocity: " + liftLeft.getVelocity() + ", Voltage (MILLIAMPS): " + liftLeft.getCurrent(CurrentUnit.MILLIAMPS));
 
                     double wristPower = gamepad1.right_trigger - gamepad1.left_trigger;
                     if (wristPower != 0) {
                         wrist.setPosition(wrist.getPosition() + wristPower * 0.01);
                     }
                     telemetry.addLine("***WARNING*** The lift is not limited. Be careful with how far you move the lift.");
+                    telemetry.addData("Claw Position", claw.getPosition());
                     telemetry.addData("Four Bar Position", leftFourBar.getPosition());
-                    telemetry.addData("Wrist Position", parsedHardwareMap.wrist.getPosition());
+                    telemetry.addData("Wrist Degrees", (wrist.getPosition() - 0.5) * 180);
                     telemetry.addData("Lift Position", liftLeft.getCurrentPosition());
                     telemetry.addData("Lift Target Position", liftLeft.getTargetPosition());
                     telemetry.addData("Lift Velocity", liftLeft.getVelocity());
@@ -92,7 +94,10 @@ public class ArmTuner extends LinearOpMode {
                 case "calibrator":
                     telemetry.addLine("1) Raise the arm using the right trigger");
                     telemetry.addLine("2) Press A/X when you are ready to begin the automated tuning process.");
-                    liftLeft.setTargetPosition(liftLeft.getCurrentPosition() + Math.round(gamepad1.right_trigger * 50));
+                    double trigger = gamepad1.right_trigger;
+                    if (trigger > 0) {
+                        liftLeft.setTargetPosition(liftLeft.getCurrentPosition() + (int)Math.round(trigger * 50));
+                    }
                     telemetry.addData("Lift Position", liftLeft.getCurrentPosition());
                     telemetry.addData("Lift Target Position", liftLeft.getTargetPosition());
 
@@ -118,10 +123,9 @@ public class ArmTuner extends LinearOpMode {
                     break;
             }
 
-            //liftLeft.setPower(-clamp((float)0.01 + (float)((double)(liftLeft.getTargetPosition() - liftLeft.getCurrentPosition()) / 400), -1, 1));
             telemetry.update();
         }
 
-        logger.close();
+        robot.logger.close();
     }
 }
