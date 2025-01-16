@@ -55,6 +55,8 @@ public class IntakeTester extends LinearOpMode {
                 robot.intake.SetIntakeState((Intake.IntakeState.DriverControlled));
             } else {
                 telemetry.addData("Color 1", "Unknown");
+                robot.intake.SetIntakeState((Intake.IntakeState.DriverControlled));
+
             }
         } else {
             telemetry.addData("Color 1", "Unknown");
